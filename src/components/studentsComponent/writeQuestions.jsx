@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useEffect,useState } from "react";
+import { useChannels } from "@/hooks/useChannels";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import supabaseClient from "@/utils/supabase";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+
 import {
   Select,
   SelectContent,
@@ -16,7 +21,8 @@ import {
   AchievementToast,
 } from "@/components/gamificationElements";
 
-import { PlusCircle, Tag, BookOpen } from "lucide-react";
+import { PlusCircle, Tag, BookOpen, Send } from "lucide-react";
+import { Textarea } from "../ui/textarea";
 
 export const WriteQuestion = ({ onSubmit }) => {
   const [title, setTitle] = useState("");
@@ -24,7 +30,6 @@ export const WriteQuestion = ({ onSubmit }) => {
   const [channel, setChannel] = useState("");
   const [tags, setTags] = useState([]);
   const [currentTag, setCurrentTag] = useState("");
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
   const [showAchievement, setShowAchievement] = useState(false);
@@ -44,59 +49,69 @@ export const WriteQuestion = ({ onSubmit }) => {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const { getToken } = useAuth();
+  const { user } = useUser();
+
+  const { channels, fetchMyChannels } = useChannels();
+  useEffect(() => {
+    fetchMyChannels();
+  }, []);
+
+
   const handleSubmit = async () => {
-    if (!title.trim() || !content.trim() || !channel) return;
+    if (!title.trim() || !content.trim() || !channel || !tags.length) return;
 
     setIsSubmitting(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const token = await getToken({ template: "supabase" });
+      const supabase = await supabaseClient(token);
 
-    const question = {
-      id: Date.now(),
-      title: title.trim(),
-      content: content.trim(),
-      channel,
-      tags,
-      isAnonymous,
-      author: isAnonymous ? "Anonymous" : "You",
-      time: "just now",
-      votes: 0,
-    };
+      const { error } = await supabase.from("questions").insert({
+        question: title.trim(),
+        description: content.trim(),
+        channel_id: channel,
+        user_id: user.id,
+        tags: tags, // ✅ array of text
+      });
 
-    setShowPointsAnimation(true);
-    setTimeout(() => {
-      setShowAchievement(true);
-    }, 500);
+      if (error) throw error;
 
-    setTitle("");
-    setContent("");
-    setChannel("");
-    setTags([]);
-    setIsAnonymous(false);
-    setIsSubmitting(false);
+      // ✅ SUCCESS TOAST
+     toast.success("Posted successfully 🎉", {
+       description: "Your question has been published",
+     });
 
-    if (onSubmit) {
-      onSubmit(question);
+      // 🎉 Gamification
+      setShowPointsAnimation(true);
+      setTimeout(() => setShowAchievement(true), 500);
+
+      // Reset form
+      setTitle("");
+      setContent("");
+      setChannel("");
+      setTags([]);
+
+      if (onSubmit) onSubmit();
+    } catch (err) {
+      console.error(err);
+      toast.error({
+        title: "❌ Error",
+        description: "Failed to post question",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  const channels = [
-    "Mathematics",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "Computer Science",
-    "Literature",
-    "History",
-    "Economics",
-  ];
-
   return (
-    <div className="relative">
-      <Card className="card-shadow">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PlusCircle className="w-5 h-5 text-primary" />
+    <div className="relative space-y-4">
+      <Card className="card-shadow border-border/50 overflow-hidden">
+        <CardHeader className="pb-4 ">
+          <CardTitle className="flex items-center gap-2.5 text-xl">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <PlusCircle className="w-5 h-5 text-primary" />
+            </div>
             Ask a Question
           </CardTitle>
         </CardHeader>
@@ -112,34 +127,45 @@ export const WriteQuestion = ({ onSubmit }) => {
               placeholder="What would you like to know?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-base"
+              className="text-base h-11 bg-muted/30 border-border/50 focus:bg-background transition-colors"
             />
           </div>
 
           {/* Channel Selection */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Subject Channel</label>
+            <label className="text-sm font-medium text-muted-foreground">
+              Subject Channel
+            </label>
             <Select value={channel} onValueChange={setChannel}>
-              <SelectTrigger>
+              <SelectTrigger className="h-11 bg-muted/30 border-border/50">
                 <SelectValue placeholder="Select a subject" />
               </SelectTrigger>
               <SelectContent>
                 {channels.map((ch) => (
-                  <SelectItem key={ch} value={ch}>
-                    {ch}
+                  <SelectItem key={ch.id} value={ch.id}>
+                    {ch.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-
           {/* Content */}
-
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-muted-foreground">
+              Description
+            </label>
+            <Textarea
+              placeholder="Provide more details about your question..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-[120px] resize-none bg-muted/30 border-border/50 focus:bg-background transition-colors"
+            />
+          </div>
           {/* Tags */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-2">
+            <label className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
               <Tag className="w-4 h-4" />
-              Tags (optional)
+              Tags
             </label>
 
             <div className="flex gap-2">
@@ -148,7 +174,7 @@ export const WriteQuestion = ({ onSubmit }) => {
                 value={currentTag}
                 onChange={(e) => setCurrentTag(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
-                className="flex-1"
+                className="flex-1 bg-muted/30 border-border/50"
               />
               <Button
                 type="button"
@@ -166,7 +192,7 @@ export const WriteQuestion = ({ onSubmit }) => {
                   <Badge
                     key={tag}
                     variant="secondary"
-                    className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                    className="cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors text-xs"
                     onClick={() => handleRemoveTag(tag)}
                   >
                     {tag} ×
@@ -175,8 +201,6 @@ export const WriteQuestion = ({ onSubmit }) => {
               </div>
             )}
           </div>
-
-          {/* Anonymous Toggle */}
 
           {/* Submit Button */}
           <div className="flex justify-end">
@@ -193,7 +217,10 @@ export const WriteQuestion = ({ onSubmit }) => {
                   Posting...
                 </div>
               ) : (
-                "Post Question"
+                <>
+                  <Send className="w-4 h-4" />
+                  Post Question
+                </>
               )}
             </Button>
           </div>

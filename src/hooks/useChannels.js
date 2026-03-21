@@ -140,6 +140,7 @@ export const useChannels = () => {
     searchResults,
     loading,
     role,
+    fetchChannels,
     searchChannels,
     createChannel,
     joinChannel,

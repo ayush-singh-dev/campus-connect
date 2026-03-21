@@ -1,0 +1,74 @@
+// hooks/useQuestions.js
+import { useState } from "react";
+import supabaseClient from "@/utils/supabase";
+import { useAuth, useUser } from "@clerk/clerk-react";
+
+export const useQuestions = () => {
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const { getToken } = useAuth();
+  const { user } = useUser();
+
+  const fetchQuestions = async () => {
+    try {
+      setLoading(true);
+
+      const token = await getToken({ template: "supabase" });
+      const supabase = await supabaseClient(token);
+
+      // 🔥 STEP 1: get user channels
+      const { data: memberships, error: mError } = await supabase
+        .from("channel_members")
+        .select("channel_id")
+        .eq("user_id", user.id);
+
+      if (mError) throw mError;
+
+      const channelIds = memberships.map((c) => c.channel_id);
+
+      if (channelIds.length === 0) {
+        setQuestions([]);
+        return;
+      }
+
+      // 🔥 STEP 2: get questions
+      const { data, error } = await supabase
+        .from("questions")
+        .select(
+          `
+         question_id,
+          question,
+          description,
+          tags,
+          created_at,
+          user_id,
+          users:users!questions_user_id_fkey (
+      full_name,
+      profile_image
+    ),
+          channels (
+            id,
+            name
+          )
+        `,
+        )
+        .in("channel_id", channelIds)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      setQuestions(data);
+    } catch (err) {
+      console.error("Fetch questions error:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    questions,
+    loading,
+    fetchQuestions,
+  };
+};

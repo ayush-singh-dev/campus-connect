@@ -12,10 +12,12 @@ import TeacherProfile from "./pages/teacherProfile";
 import AuthRedirect from "./lib/AuthRedirect";
 import StudentProfile from "./pages/studentProfile";
 import ChannelPage from "./pages/channelPage";
+import { Toaster } from "sonner";
 function App() {
   return (
     <>
       <ThemeProvider attribute="class" defaultTheme="dark">
+        <Toaster position="top-right" />
         <BrowserRouter>
           <Navbar />
           <div className="pb-16 md:pb-0">
