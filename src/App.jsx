@@ -13,6 +13,7 @@ import AuthRedirect from "./lib/AuthRedirect";
 import StudentProfile from "./pages/studentProfile";
 import ChannelPage from "./pages/channelPage";
 import { Toaster } from "sonner";
+import QuestionDetail from "./pages/questionDetail";
 function App() {
   return (
     <>
@@ -67,6 +68,10 @@ function App() {
                 }
               />
               <Route path="/channel/:channelId" element={<ChannelPage />} />
+              <Route
+                path="/question/:questionId"
+                element={<QuestionDetail />}
+              />
             </Routes>
           </div>
         </BrowserRouter>

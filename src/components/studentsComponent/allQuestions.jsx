@@ -89,7 +89,9 @@ const AllQuestions = () => {
                 <div className="flex items-start justify-between mb-2">
                   <h3
                     className="font-medium text-lg mb-2 hover:text-primary cursor-pointer transition-colors"
-                    onClick={() => navigate(`/question/${question.id}`)}
+                    onClick={() =>
+                      navigate(`/question/${question.question_id}`)
+                    }
                   >
                     {question.question}
                   </h3>
@@ -116,7 +118,9 @@ const AllQuestions = () => {
                       <MessageCircle className="w-4 h-4" />
                       {question.answers} answers
                     </span>
-                    <span>by {question.users?.full_name || "Unknown User"}</span>
+                    <span>
+                      by {question.users?.full_name || "Unknown User"}
+                    </span>
                     <Badge variant="outline" className="text-xs">
                       {question.channel?.name}
                     </Badge>
