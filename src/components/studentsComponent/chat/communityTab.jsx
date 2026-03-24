@@ -1,92 +1,167 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Send, Badge, GraduationCap, User, CheckCircle, Award } from "lucide-react";
+import { useQuestions } from "@/hooks/useQuestions";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
+import { useAuth } from "@clerk/clerk-react";
 const CommunityTab = () => {
-     const [newAnswer, setNewAnswer] = useState("");
+  const { questionId } = useParams();
+  const { getToken } = useAuth();
 
-    const [answers, setAnswers] = useState([
-      {
-        id: 1,
-        author: "Dr. Sarah Wilson",
-        avatar: "/placeholder.svg",
-        role: "teacher",
-        emoji: "👩‍🏫",
-        content:
-          "Great question! The key to balancing chemical equations is to ensure that the number of atoms of each element is the same on both sides of the equation. Start with the most complex molecule first, then work your way through each element systematically.",
-        votes: 15,
-        upvotes: 15,
-        downvotes: 0,
-        time: "2h ago",
-        isAccepted: true,
-        isVerified: true,
-        badges: ["Expert", "Top Contributor"],
-      },
-      {
-        id: 2,
-        author: "Alex Chen",
-        avatar: "/placeholder.svg",
-        role: "student",
-        emoji: "🧑‍🎓",
-        content:
-          "I find it helpful to use the algebraic method. Assign variables to each compound and set up equations based on conservation of mass. It's more systematic for complex reactions.",
-        votes: 8,
-        upvotes: 8,
-        downvotes: 1,
-        time: "1h ago",
-        isAccepted: false,
-        isVerified: false,
-        badges: ["Helper"],
-      },
-      {
-        id: 3,
-        author: "Maria Garcia",
-        avatar: "/placeholder.svg",
-        role: "student",
-        emoji: "👩‍🎓",
-        content:
-          "Don't forget to check your work by counting atoms on both sides! I always make a table to keep track of each element.",
-        votes: 3,
-        upvotes: 3,
-        downvotes: 0,
-        time: "45m ago",
-        isAccepted: false,
-        isVerified: false,
-        badges: [],
-      },
-    ]);
+  const { fetchAnswers, createAnswer, fetchQuestionById } = useQuestions();
+  const [newAnswer, setNewAnswer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAIAnswer, setShowAIAnswer] = useState(true);
+  // const [answers, setAnswers] = useState([
+  //   {
+  //     id: 1,
+  //     author: "Dr. Sarah Wilson",
+  //     avatar: "/placeholder.svg",
+  //     role: "teacher",
+  //     emoji: "👩‍🏫",
+  //     content:
+  //       "Great question! The key to balancing chemical equations is to ensure that the number of atoms of each element is the same on both sides of the equation. Start with the most complex molecule first, then work your way through each element systematically.",
+  //     votes: 15,
+  //     upvotes: 15,
+  //     downvotes: 0,
+  //     time: "2h ago",
+  //     isAccepted: true,
+  //     isVerified: true,
+  //     badges: ["Expert", "Top Contributor"],
+  //   },
+  //   {
+  //     id: 2,
+  //     author: "Alex Chen",
+  //     avatar: "/placeholder.svg",
+  //     role: "student",
+  //     emoji: "🧑‍🎓",
+  //     content:
+  //       "I find it helpful to use the algebraic method. Assign variables to each compound and set up equations based on conservation of mass. It's more systematic for complex reactions.",
+  //     votes: 8,
+  //     upvotes: 8,
+  //     downvotes: 1,
+  //     time: "1h ago",
+  //     isAccepted: false,
+  //     isVerified: false,
+  //     badges: ["Helper"],
+  //   },
+  //   {
+  //     id: 3,
+  //     author: "Maria Garcia",
+  //     avatar: "/placeholder.svg",
+  //     role: "student",
+  //     emoji: "👩‍🎓",
+  //     content:
+  //       "Don't forget to check your work by counting atoms on both sides! I always make a table to keep track of each element.",
+  //     votes: 3,
+  //     upvotes: 3,
+  //     downvotes: 0,
+  //     time: "45m ago",
+  //     isAccepted: false,
+  //     isVerified: false,
+  //     badges: [],
+  //   },
+  // ]);
+  const [answers, setAnswers] = useState([]);
+  useEffect(() => {
+    const loadAnswers = async () => {
+      const data = await fetchAnswers(questionId);
+      setAnswers(data);
+    };
 
-     const handleSubmit = () => {
-       if (!newAnswer.trim()) return;
+    if (questionId) loadAnswers();
+  }, [questionId]);
 
-       setAnswers([
-         ...answers,
-         {
-           id: Date.now(),
-           author: "You",
-           content: newAnswer,
-           upvotes: 0,
-           downvotes: 0,
-         },
-       ]);
+  // ⚡ REALTIME SUBSCRIPTION
+  useEffect(() => {
+    let channel;
 
-       setNewAnswer("");
-     };
+    const setupRealtime = async () => {
+      const token = await getToken({ template: "supabase" });
+      const supabase = await supabaseClient(token);
 
-     const handleVote = (id, type) => {
-       setAnswers(
-         answers.map((ans) => {
-           if (ans.id === id) {
-             return {
-               ...ans,
-               upvotes: type === "up" ? ans.upvotes + 1 : ans.upvotes,
-               downvotes: type === "down" ? ans.downvotes + 1 : ans.downvotes,
-             };
-           }
-           return ans;
-         }),
-       );
-     };
+      channel = supabase
+        .channel("answers-realtime")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "answers",
+            filter: `question_id=eq.${questionId}`, // 🔥 only this question
+          },
+          async (payload) => {
+            console.log("New answer:", payload);
+
+            // 🔥 fetch full answer with user data
+            const updated = await fetchAnswers(questionId);
+            setAnswers(updated);
+          },
+        )
+        .subscribe();
+    };
+
+    if (questionId) setupRealtime();
+
+    return () => {
+      if (channel) channel.unsubscribe(); // cleanup
+    };
+  }, [questionId]);
+
+  //  const handleSubmit = () => {
+  //    if (!newAnswer.trim()) return;
+
+  //    setAnswers([
+  //      ...answers,
+  //      {
+  //        id: Date.now(),
+  //        author: "You",
+  //        content: newAnswer,
+  //        upvotes: 0,
+  //        downvotes: 0,
+  //      },
+  //    ]);
+
+  //    setNewAnswer("");
+  //  };
+
+  const handleSubmitAnswer = async () => {
+    if (!newAnswer.trim()) return;
+
+    setIsSubmitting(true);
+
+    const res = await createAnswer(questionId, newAnswer);
+
+    if (res.success) {
+      toast.success("Answer posted 🎉");
+
+      setNewAnswer("");
+
+      // 🔄 reload answers
+      const updated = await fetchAnswers(questionId);
+      setAnswers(updated);
+    } else {
+      toast.error("Failed to post answer");
+    }
+
+    setIsSubmitting(false);
+  };
+  const handleVote = (id, type) => {
+    setAnswers(
+      answers.map((ans) => {
+        if (ans.id === id) {
+          return {
+            ...ans,
+            upvotes: type === "up" ? ans.upvotes + 1 : ans.upvotes,
+            downvotes: type === "down" ? ans.downvotes + 1 : ans.downvotes,
+          };
+        }
+        return ans;
+      }),
+    );
+  };
   return (
     <div className="space-y-4">
       {/* Reply Input */}
@@ -100,11 +175,11 @@ const CommunityTab = () => {
         <div className="flex justify-end">
           <Button
             size="sm"
-            // onClick={handleSubmitAnswer}
+            onClick={handleSubmitAnswer}
             disabled={!newAnswer.trim() || isSubmitting}
-            className="primary-gradient gap-1.5"
+            className="primary-gradient gap-1.5 cursor-pointer "
           >
-            {/* {isSubmitting ? (
+            {isSubmitting ? (
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
                 Submitting...
@@ -114,7 +189,7 @@ const CommunityTab = () => {
                 <Send className="w-3.5 h-3.5" />
                 Post Answer
               </>
-            )} */}
+            )}
           </Button>
         </div>
       </div>
@@ -123,7 +198,7 @@ const CommunityTab = () => {
       <div className="space-y-3">
         {answers.map((answer) => (
           <div
-            key={answer.id}
+            key={answer.answer_id}
             className={`p-4 rounded-xl border transition-colors ${
               answer.isVerified
                 ? "bg-green-500/5 border-green-500/20"
@@ -137,7 +212,7 @@ const CommunityTab = () => {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold">
-                      {answer.author}
+                      {answer.users?.full_name || "Unknown"}
                     </span>
                     <Badge
                       variant={
@@ -168,7 +243,7 @@ const CommunityTab = () => {
                         Verified
                       </Badge>
                     )}
-                    {answer.badges.map((badge) => (
+                    {/* {answer.badges.map((badge) => (
                       <Badge
                         key={badge}
                         variant="secondary"
@@ -177,10 +252,10 @@ const CommunityTab = () => {
                         <Award className="w-3 h-3 mr-0.5" />
                         {badge}
                       </Badge>
-                    ))}
+                    ))} */}
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {answer.time}
+                    {answer.created_at || "Just now"}
                   </span>
                 </div>
               </div>
@@ -188,7 +263,7 @@ const CommunityTab = () => {
 
             {/* Answer Content */}
             <p className="text-sm text-muted-foreground leading-relaxed mb-3 pl-[42px]">
-              {answer.content}
+              {answer.answer}
             </p>
 
             {/* Vote Actions */}
@@ -217,6 +292,6 @@ const CommunityTab = () => {
       </div>
     </div>
   );
-};
+};;
 
 export default CommunityTab;

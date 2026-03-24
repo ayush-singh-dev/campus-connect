@@ -17,20 +17,31 @@ export const useChannels = () => {
     setLoading(true);
     const token = await getToken({ template: "supabase" });
     const supabase = await supabaseClient(token);
-    const { error } = await supabase.from("channels").insert({
-      name,
-      description,
-      access_code: accessCode,
-      created_by: user.id,
-    });
-    setLoading(false);
+    // create channel
+    const { data, error } = await supabase
+      .from("channels")
+      .insert({
+        name,
+        description,
+        access_code: accessCode,
+        created_by: user.id,
+      })
+      .select()
+      .single();
     if (error) {
+       setLoading(false);
       console.error("Error creating channel:", error);
       return { success: false, error };
     }
+    // ✅ STEP 2: auto join teacher
+    await supabase.from("channel_members").insert({
+      channel_id: data.id,
+      user_id: user.id,
+    });
+     setLoading(false);
 
     fetchChannels(); // Refresh channel list
-  };
+  };;
   //fetch channels based on role
   const fetchChannels = async (search) => {
     try {
@@ -59,7 +70,7 @@ export const useChannels = () => {
       const supabase = await supabaseClient(token);
 
       const userId = user?.id; // Clerk user id
-
+      console.log("CLERK USER:", user?.id);
       const { data, error } = await supabase
         .from("channel_members")
         .select(
@@ -74,7 +85,7 @@ export const useChannels = () => {
       `,
         )
         .eq("user_id", userId); // IMPORTANT
-
+        console.log("RAW DATA:", data);
       if (error) throw error;
 
       const myChannels = data.map((item) => item.channels);

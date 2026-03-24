@@ -11,8 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "../ui/button";
 import AddChannelbtn from "./addChannelbtn";
 import { useChannels } from "@/hooks/useChannels";
+import { useNavigate } from "react-router-dom";
 
 const TeacherChannels = () => {
+  const navigate = useNavigate();
   const channelss = [
     { name: "Math 101", students: 45, posts: 23, activity: "high" },
     {
@@ -23,9 +25,10 @@ const TeacherChannels = () => {
     },
     { name: "Statistics", students: 52, posts: 18, activity: "high" },
   ];
-  const { channels, fetchChannels, role, joinChannel } = useChannels();
+  const { channels, fetchMyChannels, role, joinChannel } = useChannels();
+  console.log("Channels in TeacherChannels:", channels);
    useEffect(() => {
-     fetchChannels();
+      fetchMyChannels();
    }, []);
   return (
     <Card className="card-shadow">
@@ -43,9 +46,10 @@ const TeacherChannels = () => {
       <CardContent>
         {/* channel list */}
         <div className="space-y-4">
-          {channels.map((channel, index) => (
+          {channels.map((channel) => (
             <div
-              key={channel.index}
+              key={channel.id}
+              onClick={() => navigate(`/channel/${channel.id}`)}
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-smooth"
             >
               <div className="flex items-center space-x-4">

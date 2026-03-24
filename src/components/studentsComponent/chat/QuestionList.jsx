@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, Hash, MessageSquare, ThumbsUp, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Pin, Star } from "lucide-react";
-
+import { useNavigate, useParams } from "react-router-dom";
 
 export const QuestionList = ({ channelId }) => {
+  const navigate = useNavigate();
   const { questions, answers } = useChannelChat(channelId);
   console.log("Questions are ::::", questions);
 
@@ -37,7 +38,11 @@ export const QuestionList = ({ channelId }) => {
       {/* Questions-Title */}
       <div className="flex-1 p-4 space-y-6 overflow-y-auto">
         {questions.map((q) => (
-          <Card key={q.question_id} className="card-shadow">
+          <Card
+            key={q.question_id}
+            onClick={() => navigate(`/question/${q.question_id}`)}
+            className="card-shadow cursor-pointer"
+          >
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
