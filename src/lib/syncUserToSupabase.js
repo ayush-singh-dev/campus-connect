@@ -12,7 +12,7 @@ export const syncUserToSupabase = async (clerkUser, getToken) => {
     user_id: clerkUser.id,
     full_name: clerkUser.fullName || "",
     email: clerkUser.primaryEmailAddress?.emailAddress || "",
-    role: clerkUser.publicMetadata?.role,
+    role: clerkUser.unsafeMetadata?.role,
     profile_image: clerkUser.imageUrl || null,
   };
 

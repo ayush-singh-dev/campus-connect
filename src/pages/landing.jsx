@@ -1,10 +1,10 @@
-import React from 'react'
+import React from "react";
 import {
   TypewriterText,
   CyclingText,
   FadeInText,
 } from "@/components/AnimatedText";
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   BookOpen,
@@ -24,35 +24,36 @@ import {
   Github,
   BriefcaseBusiness,
 } from "lucide-react";
-import Navbar from '@/components/navbar';
+import { useNavigate } from "react-router-dom";
 
 const Landing = () => {
-    const features = [
-      {
-        icon: MessageCircle,
-        title: "Anonymous Q&A",
-        description:
-          "Ask questions freely without judgment. Get answers from peers and teachers.",
-      },
-      {
-        icon: Bot,
-        title: "AI Study Buddy",
-        description:
-          "Get instant help with summaries, flashcards, and personalized quizzes.",
-      },
-      {
-        icon: Trophy,
-        title: "Gamified Leaderboards",
-        description:
-          "Earn XP points, badges, and compete with classmates in a fun way.",
-      },
-      {
-        icon: BookOpen,
-        title: "Daily Recap",
-        description:
-          "Stay updated with daily summaries of class discussions and activities.",
-      },
-    ];
+  const navigate = useNavigate();
+  const features = [
+    {
+      icon: MessageCircle,
+      title: "Anonymous Q&A",
+      description:
+        "Ask questions freely without judgment. Get answers from peers and teachers.",
+    },
+    {
+      icon: Bot,
+      title: "AI Study Buddy",
+      description:
+        "Get instant help with summaries, flashcards, and personalized quizzes.",
+    },
+    {
+      icon: Trophy,
+      title: "Gamified Leaderboards",
+      description:
+        "Earn XP points, badges, and compete with classmates in a fun way.",
+    },
+    {
+      icon: BookOpen,
+      title: "Daily Recap",
+      description:
+        "Stay updated with daily summaries of class discussions and activities.",
+    },
+  ];
   return (
     <div className="min-h-screen  mx-auto ">
       {/* Hero section */}
@@ -96,7 +97,8 @@ const Landing = () => {
                 <div className="flex flex-row gap-4 justify-start animate-fade-slide-up [animation-delay:0.6s]">
                   <Button
                     size="lg"
-                    className="primary-gradient text-lg px-8 py-6"
+                    className="primary-gradient text-lg px-8 py-6 cursor-pointer"
+                    onClick={() => navigate("/sign-up")}
                     asChild
                   >
                     <div>
@@ -107,7 +109,8 @@ const Landing = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="text-lg px-8 py-6"
+                    className="text-lg px-8 py-6 cursor-pointer"
+                    onClick={() => navigate("/sign-in")}
                     asChild
                   >
                     <dev>Login</dev>
@@ -293,6 +296,6 @@ const Landing = () => {
       </footer>
     </div>
   );
-}
+};
 
-export default Landing
+export default Landing;

@@ -9,7 +9,7 @@ export const useChannels = () => {
   const { getToken } = useAuth();
   const [searchResults, setSearchResults] = useState([]);
 
-  const role = user?.publicMetadata?.role;
+  const role = user?.unsafeMetadata?.role;
 
   //teacher creates channels
   const createChannel = async ({ name, description, accessCode }) => {

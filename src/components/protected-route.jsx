@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/" replace />;
   }
 
-  const role = user?.publicMetadata?.role;
+  const role = user?.unsafeMetadata?.role;
 
   if (!role && location.pathname !== "/onBoarding") {
     return <Navigate to="/onBoarding" replace />;

@@ -14,6 +14,7 @@ import StudentProfile from "./pages/studentProfile";
 import ChannelPage from "./pages/channelPage";
 import { Toaster } from "sonner";
 import QuestionDetail from "./pages/questionDetail";
+import { SignInPage, SignUpPage } from "./pages/AuthPages";
 function App() {
   return (
     <>
@@ -34,6 +35,9 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              <Route path="/sign-in/*" element={<SignInPage />} />
+              <Route path="/sign-up/*" element={<SignUpPage />} />
               <Route
                 path="/student/dashboard"
                 element={

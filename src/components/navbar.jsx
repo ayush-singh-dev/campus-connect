@@ -10,7 +10,7 @@ const Navbar = () => {
   const [showSignIn, setShowSignIn] = useState(false);
   const { user } = useUser();
   const navigate = useNavigate();
-   const role = user?.publicMetadata?.role;
+   const role = user?.unsafeMetadata?.role;
    console.log("Navbar User Role:", role);
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {

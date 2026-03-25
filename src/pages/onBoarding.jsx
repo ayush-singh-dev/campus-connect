@@ -13,7 +13,7 @@ const OnBoarding = () => {
        if (!user) return;
        try {
          await user.update({
-           publicMetadata: { role },
+           unsafeMetadata: { role },
          });
            await user.reload();
          navigate(
@@ -23,20 +23,11 @@ const OnBoarding = () => {
        } catch (err) {
          console.error("Error updating user metadata:", err);
        }
-        // await user
-        //   .update({ unsafe_metadata: { role } })
-        //   .then(() => {
-        //     navigate(
-        //       role === "student" ? "/student/dashboard" : "/teacher/dashboard"
-        //     );
-        //   })
-        //   .catch((err) => {
-        //     console.error("Error updating user metadata:", err);
-        //   });
     }
     useEffect(() => {
       if (!isLoaded || !user) return;
-      const role = user.publicMetadata?.role;
+      const role = user.unsafeMetadata?.role;
+      console.log("User role:", role);
       if (role === "student") {
         navigate("/student/dashboard", { replace: true });
       }
@@ -44,13 +35,9 @@ const OnBoarding = () => {
       if (role === "teacher") {
         navigate("/teacher/dashboard", { replace: true });
       }
-      // if(isLoaded && user?.unsafeMetadata?.role){
-      //     const role = user.unsafeMetadata.role;
-      //     navigate(role === "student" ? "/student/dashboard" : "/teacher/dashboard");
-      // }
     }, [isLoaded, user, navigate]);
   return (
-    <div className="min-h-screen bg-amber-700">
+    <div className="min-h-screen bg-gradient-to-br items-center justify-center">
       <div className="flex items-center justify-center min-h-screen pt-20 pb-8">
         <div className="w-full max-w-md px-4">
           <Card className="card-shadow">
@@ -78,7 +65,7 @@ const OnBoarding = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
-                    className="h-24 flex-col space-y-2 transition-smooth hover:scale-105"
+                    className="h-24 flex-col space-y-2 transition-smooth hover:scale-105 cursor-pointer"
                     onClick={() => handleRoleSelection("student")}
                   >
                     <span className="text-2xl">👩‍🎓</span>
@@ -87,7 +74,7 @@ const OnBoarding = () => {
 
                   <Button
                     variant="outline"
-                    className="h-24 flex-col space-y-2 transition-smooth hover:scale-105"
+                    className="h-24 flex-col space-y-2 transition-smooth hover:scale-105 cursor-pointer"
                     onClick={() => handleRoleSelection("teacher")}
                   >
                     <span className="text-2xl">👨‍🏫</span>
