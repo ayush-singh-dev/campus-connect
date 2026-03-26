@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from '../ui/button';
 
 import { ArrowDown, ArrowUp, Badge, CheckCircle, MessageCircle } from 'lucide-react';
@@ -10,58 +10,43 @@ import { useQuestions } from '@/hooks/useQuestions';
 import { useNavigate } from 'react-router-dom';
 
 const AllQuestions = () => {
-    // const questions = [
-    //   {
-    //     id: 1,
-    //     title: "How to solve quadratic equations with complex solutions?",
-    //     author: "Sarah M.",
-    //     channel: "Math 101",
-    //     votes: 15,
-    //     answers: 3,
-    //     time: "2h ago",
-    //     tags: ["algebra", "complex-numbers"],
-    //     solved: true,
-    //   },
-    //   {
-    //     id: 2,
-    //     title: "What's the difference between velocity and acceleration?",
-    //     author: "Anonymous",
-    //     channel: "Physics",
-    //     votes: 8,
-    //     answers: 2,
-    //     time: "1h ago",
-    //     tags: ["mechanics", "kinematics"],
-    //     solved: false,
-    //   },
-    //   {
-    //     id: 3,
-    //     title: "Best practices for writing clean code in Python?",
-    //     author: "Mike R.",
-    //     channel: "Computer Science",
-    //     votes: 22,
-    //     answers: 5,
-    //     time: "3h ago",
-    //     tags: ["python", "best-practices"],
-    //     solved: true,
-    //   },
-    //   {
-    //     id: 4,
-    //     title: "How to balance chemical equations efficiently?",
-    //     author: "Emma W.",
-    //     channel: "Chemistry",
-    //     votes: 12,
-    //     answers: 4,
-    //     time: "4h ago",
-    //     tags: ["balancing", "equations"],
-    //     solved: false,
-    //   },
-    // ];
+  const [voting, setVoting] = useState(false);
+  const [userVotes, setUserVotes] = useState({});
 
-    const { questions, fetchQuestions } = useQuestions();
+    const { questions, fetchQuestions, voteQuestion, fetchUserVotes } = useQuestions();
     console.log("Fetched allll questions:", questions);
+    const handleVote = async (questionId, voteType) => {
+      if (voting) return;
+      setVoting(true);
+      const prevVote = userVotes[questionId] || 0;
+
+      let newVote = voteType;
+
+      // toggle logic
+      if (prevVote === voteType) {
+        newVote = 0;
+      }
+      // ✅ store user vote
+      setUserVotes((prev) => ({
+        ...prev,
+        [questionId]: newVote,
+      }));
+
+      // ✅ backend call
+      await voteQuestion(questionId, newVote);
+      //  await fetchQuestions();
+      setVoting(false);
+    };
     const navigate = useNavigate();
     useEffect(() => {
-      fetchQuestions();
+      const loadData = async () => {
+        await fetchQuestions();
+
+        const votes = await fetchUserVotes();
+        setUserVotes(votes);
+      };
+
+      loadData();
     }, []);
   return (
     <div className="space-y-4">
@@ -74,12 +59,33 @@ const AllQuestions = () => {
             <div className="flex gap-4">
               {/* Voting Column */}
               <div className="flex flex-col items-center space-y-2">
-                <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={voting}
+                  className={
+                    userVotes[question.question_id] === 1 ? "text-primary" : ""
+                  }
+                  onClick={() => handleVote(question.question_id, 1)}
+                >
                   <ArrowUp className="w-4 h-4" />
                 </Button>
                 {/* <span className="text-sm font-medium">{question.votes}</span> */}
-                <span className="text-sm font-medium">0</span>
-                <Button variant="ghost" size="sm" className="p-1 h-8 w-8">
+                <span className="text-sm font-medium">
+                  {" "}
+                  {question.votes_count || 0}
+                </span>
+                <Button
+                  variant="ghost"
+                  disabled={voting}
+                  size="sm"
+                  className={
+                    userVotes[question.question_id] === -1
+                      ? "text-destructive"
+                      : ""
+                  }
+                  onClick={() => handleVote(question.question_id, -1)}
+                >
                   <ArrowDown className="w-4 h-4" />
                 </Button>
               </div>
@@ -102,11 +108,7 @@ const AllQuestions = () => {
 
                 <div className="flex flex-wrap gap-2 mb-3">
                   {question.tags.map((tag, tagIndex) => (
-                    <Badge
-                      key={tagIndex}
-                      variant="secondary"
-                      className="text-xs"
-                    >
+                    <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>
                   ))}
@@ -122,7 +124,7 @@ const AllQuestions = () => {
                       by {question.users?.full_name || "Unknown User"}
                     </span>
                     <Badge variant="outline" className="text-xs">
-                      {question.channel?.name}
+                      {question.channels?.name}
                     </Badge>
                   </div>
                   <span>{new Date(question.created_at).toLocaleString()}</span>

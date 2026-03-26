@@ -2,6 +2,7 @@
 import { useState } from "react";
 import supabaseClient from "@/utils/supabase";
 import { useAuth, useUser } from "@clerk/clerk-react";
+import { set } from "date-fns";
 
 export const useQuestions = () => {
   const [questions, setQuestions] = useState([]);
@@ -50,15 +51,25 @@ export const useQuestions = () => {
           channels (
             id,
             name
-          )
+          ),
+          question_votes(vote)
         `,
         )
         .in("channel_id", channelIds)
         .order("created_at", { ascending: false });
+        console.log("DATA:////", data);
+        const formatted = (data || []).map((q) => ({
+          ...q,
+          votes_count:
+            q.question_votes?.reduce((sum, v) => sum + v.vote, 0) || 0,
+        }));
 
-      if (error) throw error;
 
-      setQuestions(data);
+      if (error) {
+        console.error("Supabase error:", error.message);
+        return;
+      }
+      setQuestions(formatted);
     } catch (err) {
       console.error("Fetch questions error:", err.message);
     } finally {
@@ -151,6 +162,52 @@ export const useQuestions = () => {
       return { success: false };
     }
   };
+  const voteQuestion = async (questionId, voteType) => {
+    // ✅ optimistic update here
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.question_id === questionId
+          ? { ...q, votes_count: (q.votes_count || 0) + voteType }
+          : q,
+      ),
+    );
+    try {
+      const token = await getToken({ template: "supabase" });
+      const supabase = await supabaseClient(token);
+
+      await supabase.rpc("vote_question", {
+        p_user_id: user.id,
+        p_question_id: questionId,
+        p_vote: voteType,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const fetchUserVotes = async () => {
+    try {
+      const token = await getToken({ template: "supabase" });
+      const supabase = await supabaseClient(token);
+
+      const { data, error } = await supabase
+        .from("question_votes")
+        .select("question_id, vote")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      // convert array → object
+      const votesMap = {};
+      data.forEach((v) => {
+        votesMap[v.question_id] = v.vote;
+      });
+
+      return votesMap;
+    } catch (err) {
+      console.error("Fetch votes error:", err.message);
+      return {};
+    }
+  };
 
   return {
     questions,
@@ -159,5 +216,8 @@ export const useQuestions = () => {
     fetchQuestionById,
     fetchAnswers,
     createAnswer,
+    voteQuestion,
+    setQuestions,
+    fetchUserVotes,
   };
 };
