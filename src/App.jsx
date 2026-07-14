@@ -14,7 +14,7 @@ import StudentProfile from "./pages/studentProfile";
 import ChannelPage from "./pages/channelPage";
 import { Toaster } from "sonner";
 import QuestionDetail from "./pages/questionDetail";
-import { SignInPage, SignUpPage } from "./pages/AuthPages";
+import { SignInPage, SignUpPage } from "./pages/authPages";
 function App() {
   return (
     <>
