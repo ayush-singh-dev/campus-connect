@@ -95,7 +95,8 @@ export const useChannels = () => {
       console.log("My Channels:", myChannels);
       console.log("Clerk user id:", user?.id);
     } catch (error) {
-      console.error("Fetch my channels error:", error.message);
+      c
+      onsole.error("Fetch my channels error:", error.message);
     } finally {
       setLoading(false);
     }
