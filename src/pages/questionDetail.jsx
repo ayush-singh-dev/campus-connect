@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import {
   CelebrationNotification,
   AchievementToast,
-} from "@/components/GamificationElements";
+} from "@/components/gamificationElements";
 import QuestionCard from "@/components/studentsComponent/chat/questionCard";
 import AnswerCard from "@/components/studentsComponent/chat/answerCard";
 
