@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import supabaseClient from "@/utils/supabase";
-import { useChannelContext } from "@/hooks/ChannelContext";
+import { useChannelContext } from "@/hooks/channelContext";
 import { useUser, useAuth } from "@clerk/clerk-react";
 
 export const useChannels = () => {
