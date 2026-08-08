@@ -2,7 +2,6 @@
 import { useState } from "react";
 import supabaseClient from "@/utils/supabase";
 import { useAuth, useUser } from "@clerk/clerk-react";
-import { set } from "date-fns";
 
 export const useQuestions = () => {
   const [questions, setQuestions] = useState([]);
@@ -56,7 +55,8 @@ export const useQuestions = () => {
         `,
         )
         .in("channel_id", channelIds)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(5);
         console.log("DATA:////", data);
         const formatted = (data || []).map((q) => ({
           ...q,
@@ -104,11 +104,14 @@ export const useQuestions = () => {
         .eq("question_id", questionId)
         .single();
 
+        console.log("Question Data:", data);
+        console.log("Question Error:", error);
+
       if (error) throw error;
 
       return data;
     } catch (err) {
-      console.error("Fetch single question error:", err.message);
+      console.error("Fetch single question error:", err);
       return null;
     } finally {
       setLoading(false);

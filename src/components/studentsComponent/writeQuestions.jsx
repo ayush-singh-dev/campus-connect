@@ -1,4 +1,4 @@
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { useChannels } from "@/hooks/useChannels";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import supabaseClient from "@/utils/supabase";
@@ -57,7 +57,6 @@ export const WriteQuestion = ({ onSubmit }) => {
     fetchMyChannels();
   }, []);
 
-
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim() || !channel || !tags.length) return;
 
@@ -67,7 +66,7 @@ export const WriteQuestion = ({ onSubmit }) => {
       const token = await getToken({ template: "supabase" });
       const supabase = await supabaseClient(token);
 
-      const { error } = await supabase.from("questions").insert({
+      const { data, error } = await supabase.from("questions").insert({
         question: title.trim(),
         description: content.trim(),
         channel_id: channel,
@@ -78,9 +77,9 @@ export const WriteQuestion = ({ onSubmit }) => {
       if (error) throw error;
 
       // ✅ SUCCESS TOAST
-     toast.success("Posted successfully 🎉", {
-       description: "Your question has been published",
-     });
+      toast.success("Posted successfully 🎉", {
+        description: "Your question has been published",
+      });
 
       // 🎉 Gamification
       setShowPointsAnimation(true);
@@ -92,13 +91,11 @@ export const WriteQuestion = ({ onSubmit }) => {
       setChannel("");
       setTags([]);
 
-      if (onSubmit) onSubmit();
+      if (onSubmit) onSubmit(data);
     } catch (err) {
       console.error(err);
-      toast.error({
-        title: "❌ Error",
-        description: "Failed to post question",
-        variant: "destructive",
+      toast.error("Failed to post question", {
+        description: "Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -140,7 +137,17 @@ export const WriteQuestion = ({ onSubmit }) => {
               <SelectTrigger className="h-11 bg-muted/30 border-border/50">
                 <SelectValue placeholder="Select a subject" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                className="z-50
+                w-[var(--radix-select-trigger-width)]
+                bg-background
+                border
+                border-border
+                rounded-md
+                shadow-lg
+                max-h-60
+                overflow-y-auto"
+              >
                 {channels.map((ch) => (
                   <SelectItem key={ch.id} value={ch.id}>
                     {ch.name}
@@ -209,7 +216,15 @@ export const WriteQuestion = ({ onSubmit }) => {
               disabled={
                 !title.trim() || !content.trim() || !channel || isSubmitting
               }
-              className="min-w-[140px] primary-gradient"
+              className="min-w-[140px]
+                         bg-gradient-to-r
+                         from-primary
+                         to-accent
+                         text-primary-foreground
+                         hover:from-primary/90
+                         hover:to-accent/90
+                         transition-all
+                         cursor-pointer"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">

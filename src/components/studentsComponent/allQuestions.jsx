@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '../ui/button';
 
-import { ArrowDown, ArrowUp, Badge, CheckCircle, MessageCircle } from 'lucide-react';
+import { ArrowDown, ArrowUp, CheckCircle, MessageCircle } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -107,9 +108,13 @@ const AllQuestions = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {question.tags.map((tag, tagIndex) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
-                      {tag}
+                  {question.tags?.map((tag, tagIndex) => (
+                    <Badge
+                      key={tagIndex}
+                      variant="secondary"
+                      className="text-xs"
+                    >
+                      {tag ? tag : "No Tag"}
                     </Badge>
                   ))}
                 </div>

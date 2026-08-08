@@ -17,6 +17,8 @@
   --color-foreground: hsl(var(--foreground));
   --color-border: hsl(var(--border));
   --color-card: hsl(var(--card));
+  --color-xp: hsl(var(--xp));
+  --color-xp-foreground: hsl(var(--xp-foreground));
 }
 
 @layer base {

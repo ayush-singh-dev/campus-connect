@@ -1,4 +1,8 @@
-import React from 'react'
+import { useEffect } from "react";
+import { Trophy } from "lucide-react";
+import { useLeaderboard } from "@/hooks/useLeaderBoard";
+import { useUser } from "@clerk/clerk-react";
+
 import {
   Card,
   CardContent,
@@ -6,16 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Trophy } from 'lucide-react';
 
 const Leaderboard = () => {
-     const leaderboard = [
-       { rank: 1, name: "Alex Chen", xp: 2450, badge: "🏆" },
-       { rank: 2, name: "Sarah Johnson", xp: 2380, badge: "🥈" },
-       { rank: 3, name: "Mike Rodriguez", xp: 2120, badge: "🥉" },
-       { rank: 4, name: "You", xp: 1890, badge: "" },
-       { rank: 5, name: "Emma Wilson", xp: 1750, badge: "" },
-     ];
+   const { leaderboard, fetchLeaderboard } = useLeaderboard();
+   const { user } = useUser();
+
+   useEffect(() => {
+     fetchLeaderboard();
+   }, []);
 
   return (
     <Card className="card-shadow">
@@ -28,29 +30,36 @@ const Leaderboard = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {leaderboard.map((user, index) => (
+          {leaderboard.map((student) => (
             <div
-              key={index}
-              className={`flex items-center justify-between p-2 rounded-lg ${user.name === "You" ? "bg-primary/10 border border-primary/20" : ""}`}
+              key={student.user_id}
+              className={`flex justify-between items-center p-2 rounded-lg ${
+                student.user_id === user.id
+                  ? "bg-primary/10 border border-primary"
+                  : ""
+              }`}
             >
-              <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium w-6">#{user.rank}</span>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold w-8">#{student.rank}</span>
+
                 <div>
-                  <div className="font-medium text-sm flex items-center gap-1">
-                    {user.badge && <span>{user.badge}</span>}
-                    {user.name}
-                  </div>
+                  <div className="font-medium">{student.full_name}</div>
+
                   <div className="text-xs text-muted-foreground">
-                    {user.xp} XP
+                    {student.xp_point ?? 0} XP
                   </div>
                 </div>
               </div>
+
+              {student.rank === 1 && "🏆"}
+              {student.rank === 2 && "🥈"}
+              {student.rank === 3 && "🥉"}
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
   );
-}
+};
 
-export default Leaderboard
+export default Leaderboard;

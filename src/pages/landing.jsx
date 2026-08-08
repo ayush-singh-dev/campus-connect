@@ -13,8 +13,6 @@ import {
   MessageCircle,
   Users,
   Zap,
-  Star,
-  Target,
   Award,
   GraduationCap,
   Facebook,
@@ -57,99 +55,115 @@ const Landing = () => {
   return (
     <div className="min-h-screen  mx-auto ">
       {/* Hero section */}
-      <section className=" pt-25 pb-20 overflow-hidden">
-        <div className="absolute inset-0 mesh-gradient h-[81.7%]" />
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-            <div className="container flex items-center justify-between px-20 gap-12  ">
-              <div>
-                <h1 className="text-5xl lg:text-6xl font-bold mb-6">
-                  <span className="inline-block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent ">
-                    <TypewriterText
-                      text="CampusConnect"
-                      delay={500}
-                      speed={150}
-                    />
-                  </span>
-                </h1>
-                <p className="text-2xl text-muted-foreground mb-8">
-                  <CyclingText
-                    words={[
-                      "Learn. Share. Play.",
-                      "Connect. Collaborate. Compete.",
-                      "Study. Socialize. Succeed.",
-                    ]}
-                    delay={3000}
-                    duration={3000}
-                    className="font-medium"
+      <section className="relative pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20 overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 mesh-gradient" />
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+            {/* LEFT SIDE */}
+            <div className="w-full lg:flex-1 text-center lg:text-left">
+              {/* Heading */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-5 sm:mb-6">
+                <span className="inline-block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  <TypewriterText
+                    text="CampusConnect"
+                    delay={500}
+                    speed={150}
                   />
+                </span>
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-xl sm:text-2xl text-muted-foreground mb-6 sm:mb-8">
+                <CyclingText
+                  words={[
+                    "Learn. Share. Play.",
+                    "Connect. Collaborate. Compete.",
+                    "Study. Socialize. Succeed.",
+                  ]}
+                  delay={3000}
+                  duration={3000}
+                  className="font-medium"
+                />
+              </p>
+
+              {/* Description */}
+              <FadeInText
+                delay={4000}
+                className="text-base sm:text-lg text-foreground/80 mb-7 sm:mb-8 max-w-xl mx-auto lg:mx-0"
+              >
+                <p>
+                  The ultimate platform combining Discord&apos;s collaboration,
+                  StackOverflow&apos;s Q&A format, and Duolingo&apos;s gamified
+                  learning experience.
                 </p>
-                <FadeInText
-                  delay={4000}
-                  className="text-lg text-foreground/80 mb-8 max-w-xl"
+              </FadeInText>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-fade-slide-up [animation-delay:0.6s]">
+                <Button
+                  size="lg"
+                  className="primary-gradient text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 cursor-pointer w-full sm:w-auto"
+                  onClick={() => navigate("/sign-up")}
                 >
-                  <p>
-                    The ultimate platform combining Discord&apos;s
-                    collaboration, StackOverflow&apos;s Q&A format, and
-                    Duolingo&apos;s gamified learning experience.
-                  </p>
-                </FadeInText>
-                <div className="flex flex-row gap-4 justify-start animate-fade-slide-up [animation-delay:0.6s]">
-                  <Button
-                    size="lg"
-                    className="primary-gradient text-lg px-8 py-6 cursor-pointer"
-                    onClick={() => navigate("/sign-up")}
-                    asChild
-                  >
-                    <div>
-                      Get Started Free
-                      <Zap className="ml-2 w-5 h-5" />
-                    </div>
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-lg px-8 py-6 cursor-pointer"
-                    onClick={() => navigate("/sign-in")}
-                    asChild
-                  >
-                    <dev>Login</dev>
-                  </Button>
-                </div>
+                  Get Started Free
+                  <Zap className="ml-2 w-5 h-5" />
+                </Button>
+
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6 cursor-pointer w-full sm:w-auto"
+                  onClick={() => navigate("/sign-in")}
+                >
+                  Login
+                </Button>
               </div>
-              {/* right side */}
-              <div className="flex-1 flex  lg:justify-end">
-                <div className="relative w-full max-w-md lg:max-w-lg">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-3xl animate-pulse"></div>
-                  <div className="relative bg-card/50 backdrop-blur-sm rounded-3xl p-8 border border-border/50 card-shadow">
-                    <div className="text-center space-y-6">
-                      <div className="w-32 h-32 mx-auto primary-gradient rounded-full flex items-center justify-center animate-fade-in [animation-delay:0.8s]">
-                        <GraduationCap className="w-16 h-16 text-white" />
+            </div>
+
+            {/* RIGHT SIDE */}
+            <div className="w-full lg:flex-1 flex justify-center lg:justify-end">
+              <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg">
+                {/* Glow */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl blur-3xl animate-pulse" />
+
+                {/* Card */}
+                <div className="relative bg-card/50 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-border/50 card-shadow">
+                  <div className="text-center space-y-5 sm:space-y-6">
+                    {/* Icon */}
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto primary-gradient rounded-full flex items-center justify-center animate-fade-in [animation-delay:0.8s]">
+                      <GraduationCap className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+                    </div>
+
+                    {/* Features */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-center gap-3 animate-fade-in [animation-delay:1.0s]">
+                        <div className="w-3 h-3 bg-primary rounded-full animate-pulse shrink-0" />
+                        <span className="text-base sm:text-lg font-medium">
+                          Interactive Learning
+                        </span>
                       </div>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-center space-x-3 animate-fade-in [animation-delay:1.0s]">
-                          <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
-                          <span className="text-lg font-medium">
-                            Interactive Learning
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center space-x-3 animate-fade-in [animation-delay:1.2s]">
-                          <div className="w-3 h-3 bg-accent rounded-full animate-pulse [animation-delay:0.5s]"></div>
-                          <span className="text-lg font-medium">
-                            Peer Collaboration
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-center space-x-3 animate-fade-in [animation-delay:1.4s]">
-                          <div className="w-3 h-3 bg-success rounded-full animate-pulse [animation-delay:1s]"></div>
-                          <span className="text-lg font-medium">
-                            Gamified Progress
-                          </span>
-                        </div>
+
+                      <div className="flex items-center justify-center gap-3 animate-fade-in [animation-delay:1.2s]">
+                        <div className="w-3 h-3 bg-accent rounded-full animate-pulse [animation-delay:0.5s] shrink-0" />
+                        <span className="text-base sm:text-lg font-medium">
+                          Peer Collaboration
+                        </span>
                       </div>
-                      <div className="pt-4 border-t border-border/50">
-                        <div className="text-sm text-muted-foreground animate-fade-in [animation-delay:1.6s]">
-                          Join the future of education
-                        </div>
+
+                      <div className="flex items-center justify-center gap-3 animate-fade-in [animation-delay:1.4s]">
+                        <div className="w-3 h-3 bg-success rounded-full animate-pulse [animation-delay:1s] shrink-0" />
+                        <span className="text-base sm:text-lg font-medium">
+                          Gamified Progress
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom */}
+                    <div className="pt-4 border-t border-border/50">
+                      <div className="text-sm text-muted-foreground animate-fade-in [animation-delay:1.6s]">
+                        Join the future of education
                       </div>
                     </div>
                   </div>
