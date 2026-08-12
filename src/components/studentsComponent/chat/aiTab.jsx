@@ -201,14 +201,6 @@ const AiTab = ({question}) => {
       ===================================== */}
       {showAIAnswer && aiAnswer && !isGenerating && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          {/* Warning */}
-          <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-destructive/8 border border-destructive/15">
-            <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
-
-            <span className="text-xs font-medium text-destructive">
-              AI Generated Answer — Verify important information
-            </span>
-          </div>
 
           {/* AI Header */}
           <div className="flex items-center justify-between">

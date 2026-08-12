@@ -268,17 +268,6 @@ export const WriteQuestion = ({ onSubmit }) => {
               onChange={(e) => setTitle(e.target.value)}
               className="text-base h-11 bg-muted/30 border-border/50 focus:bg-background transition-colors"
             />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleImproveQuestion}
-              disabled={!title.trim() || isImproving}
-              className="mt-2"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-
-              {isImproving ? "Improving..." : "Improve with AI"}
-            </Button>
           </div>
 
           {/* Channel Selection */}
@@ -315,28 +304,6 @@ export const WriteQuestion = ({ onSubmit }) => {
               <label className="text-sm font-medium text-muted-foreground">
                 Description
               </label>
-
-              {/* AI Improve Button */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleImproveQuestion}
-                disabled={!title.trim() || isImproving}
-                className="gap-2 border-primary/30 hover:bg-primary/10 hover:text-primary cursor-pointer"
-              >
-                {isImproving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                    Improving...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    Improve with AI
-                  </>
-                )}
-              </Button>
             </div>
             <Textarea
               placeholder="Provide more details about your question..."
