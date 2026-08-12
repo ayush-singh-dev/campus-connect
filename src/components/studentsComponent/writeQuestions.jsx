@@ -136,9 +136,15 @@ export const WriteQuestion = ({ onSubmit }) => {
           },
         },
       );
+       console.log("AI DATA:", data);
+       console.log("AI ERROR:", error);
 
       if (error) {
         console.error("Function error:", error);
+        if (error.context) {
+          const errorBody = await error.context.json();
+          console.error("FUNCTION ERROR BODY:", errorBody);
+        }
 
         if (error instanceof FunctionsHttpError) {
           const errorBody = await error.context.json();
@@ -175,7 +181,9 @@ export const WriteQuestion = ({ onSubmit }) => {
     } catch (error) {
       console.error("AI improvement failed:", error);
 
-      toast.error("AI improvement failed");
+       toast.error("AI improvement failed", {
+         description: error.message || "Please try again.",
+       });
     } finally {
       setIsImproving(false);
     }
