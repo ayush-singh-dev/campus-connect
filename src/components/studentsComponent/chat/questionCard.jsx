@@ -6,22 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useParams } from "react-router-dom";
 import { useQuestions } from "@/hooks/useQuestions";
 
-const QuestionCard = () => {
-  const { fetchQuestionById } = useQuestions();
-  const { questionId } = useParams();
-  const [question, setQuestion] = useState(null);
-  
-  useEffect(() => {
-    const loadData = async () => {
-      const q = await fetchQuestionById(questionId);
-      // const a = await fetchAnswers(questionId);
-
-      setQuestion(q);
-      // setAnswers(a);
-    };
-
-    loadData();
-  }, [questionId]);
+const QuestionCard = ({ question }) => {
   if (!question) return <div>Loading...</div>;
   return (
     <Card className="card-shadow mb-6 border-border/40">

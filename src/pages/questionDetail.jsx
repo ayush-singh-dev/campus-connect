@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ import {
 } from "@/components/gamificationElements";
 import QuestionCard from "@/components/studentsComponent/chat/questionCard";
 import AnswerCard from "@/components/studentsComponent/chat/answerCard";
+import { useQuestions } from "@/hooks/useQuestions";
 
 
 
@@ -16,6 +17,34 @@ const QuestionDetail = () => {
   const navigate = useNavigate();
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
   const [showAchievement, setShowAchievement] = useState(false);
+  const [question, setQuestion] = useState(null);
+  const { questionId } = useParams();
+  const { fetchQuestionById } = useQuestions();
+  useEffect(() => {
+    const loadQuestion = async () => {
+      try {
+        const q = await fetchQuestionById(questionId);
+
+        console.log("Question Detail:", q);
+
+        setQuestion(q);
+      } catch (error) {
+        console.error("Failed to fetch question:", error);
+      }
+    };
+
+    if (questionId) {
+      loadQuestion();
+    }
+  }, [questionId]);
+
+  if (!question) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen background-gradient">
       <div className="pt-20 pb-8">
@@ -27,10 +56,10 @@ const QuestionDetail = () => {
           </Button>
 
           {/* Question Card */}
-          <QuestionCard />
+          <QuestionCard question={question} />
 
           {/* Answers Section with Tabs */}
-          <AnswerCard />
+          <AnswerCard question={question} />
         </div>
       </div>
 

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { PlusCircle, Tag, BookOpen, Send, Sparkles } from "lucide-react";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 
 import {
   Select,
@@ -20,8 +22,6 @@ import {
   CelebrationNotification,
   AchievementToast,
 } from "@/components/gamificationElements";
-
-import { PlusCircle, Tag, BookOpen, Send } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 
 export const WriteQuestion = ({ onSubmit }) => {
@@ -33,6 +33,8 @@ export const WriteQuestion = ({ onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
   const [showAchievement, setShowAchievement] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
 
   const handleAddTag = () => {
     if (
@@ -57,8 +59,133 @@ export const WriteQuestion = ({ onSubmit }) => {
     fetchMyChannels();
   }, []);
 
+  const improveWithAI = async () => {
+    if (!title.trim()) {
+      toast.error("Please enter a question first.");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const token = await getToken({ template: "supabase" });
+      const supabase = await supabaseClient(token);
+
+      const { data, error } = await supabase.functions.invoke(
+        "improve-question",
+        {
+          body: {
+            question: title,
+            description: content,
+          },
+        },
+      );
+
+      if (error) throw error;
+
+      if (!data?.success) {
+        throw new Error(data?.error || "AI improvement failed");
+      }
+
+      const improved = data.data;
+
+      // Update question
+      setTitle(improved.improvedQuestion || title);
+
+      // Update description
+      setContent(improved.improvedDescription || content);
+
+      // Update tags
+      if (Array.isArray(improved.tags)) {
+        setTags(improved.tags);
+      }
+
+      toast.success("Question improved with AI ✨");
+    } catch (error) {
+      console.error("AI improvement error:", error);
+
+      toast.error("AI improvement failed", {
+        description: error.message || "Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleImproveQuestion = async () => {
+    if (!title.trim()) {
+      toast.error("Enter a question first");
+      return;
+    }
+
+    try {
+      setIsImproving(true);
+
+      const token = await getToken({
+        template: "supabase",
+      });
+
+      const supabase = await supabaseClient(token);
+
+      const { data, error } = await supabase.functions.invoke(
+        "improve-question",
+        {
+          body: {
+            question: title,
+            description: content,
+          },
+        },
+      );
+
+      if (error) {
+        console.error("Function error:", error);
+
+        if (error instanceof FunctionsHttpError) {
+          const errorBody = await error.context.json();
+
+          console.error("Function response:", errorBody);
+
+          toast.error(errorBody?.error || "AI improvement failed");
+
+          return;
+        }
+
+        throw error;
+      }
+
+      console.log("AI result:", data);
+
+      if (!data?.success) {
+        toast.error(data?.error || "AI improvement failed");
+        return;
+      }
+
+      const result = data.data;
+
+      // Put AI result into your form
+      setTitle(result.improvedQuestion || title);
+
+      setContent(result.improvedDescription || content);
+
+      if (Array.isArray(result.tags)) {
+        setTags(result.tags);
+      }
+
+      toast.success("Question improved by AI ✨");
+    } catch (error) {
+      console.error("AI improvement failed:", error);
+
+      toast.error("AI improvement failed");
+    } finally {
+      setIsImproving(false);
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!title.trim() || !content.trim() || !channel || !tags.length) return;
+    if (!title.trim() || !content.trim() || !channel || !tags.length) {
+      toast.error("Please complete all fields.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -66,22 +193,25 @@ export const WriteQuestion = ({ onSubmit }) => {
       const token = await getToken({ template: "supabase" });
       const supabase = await supabaseClient(token);
 
-      const { data, error } = await supabase.from("questions").insert({
-        question: title.trim(),
-        description: content.trim(),
-        channel_id: channel,
-        user_id: user.id,
-        tags: tags, // ✅ array of text
-      });
+      const { data, error } = await supabase
+        .from("questions")
+        .insert({
+          question: title.trim(),
+          description: content.trim(),
+          channel_id: channel,
+          user_id: user.id,
+          tags: tags,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      // ✅ SUCCESS TOAST
       toast.success("Posted successfully 🎉", {
         description: "Your question has been published",
       });
 
-      // 🎉 Gamification
+      // Gamification
       setShowPointsAnimation(true);
       setTimeout(() => setShowAchievement(true), 500);
 
@@ -90,10 +220,14 @@ export const WriteQuestion = ({ onSubmit }) => {
       setContent("");
       setChannel("");
       setTags([]);
+      setAiSuggestions([]);
 
-      if (onSubmit) onSubmit(data);
+      if (onSubmit) {
+        onSubmit(data);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Post question error:", err);
+
       toast.error("Failed to post question", {
         description: "Please try again.",
       });
@@ -126,6 +260,17 @@ export const WriteQuestion = ({ onSubmit }) => {
               onChange={(e) => setTitle(e.target.value)}
               className="text-base h-11 bg-muted/30 border-border/50 focus:bg-background transition-colors"
             />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleImproveQuestion}
+              disabled={!title.trim() || isImproving}
+              className="mt-2"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+
+              {isImproving ? "Improving..." : "Improve with AI"}
+            </Button>
           </div>
 
           {/* Channel Selection */}
@@ -158,15 +303,57 @@ export const WriteQuestion = ({ onSubmit }) => {
           </div>
           {/* Content */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-muted-foreground">
-              Description
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-muted-foreground">
+                Description
+              </label>
+
+              {/* AI Improve Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleImproveQuestion}
+                disabled={!title.trim() || isImproving}
+                className="gap-2 border-primary/30 hover:bg-primary/10 hover:text-primary cursor-pointer"
+              >
+                {isImproving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
+                    Improving...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Improve with AI
+                  </>
+                )}
+              </Button>
+            </div>
             <Textarea
               placeholder="Provide more details about your question..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[120px] resize-none bg-muted/30 border-border/50 focus:bg-background transition-colors"
             />
+            {/* AI Suggestions */}
+            {aiSuggestions.length > 0 && (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 mt-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+
+                  <span className="text-sm font-medium">AI Suggestions</span>
+                </div>
+
+                <ul className="space-y-1">
+                  {aiSuggestions.map((suggestion, index) => (
+                    <li key={index} className="text-sm text-muted-foreground">
+                      • {suggestion}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           {/* Tags */}
           <div className="space-y-2">
@@ -210,33 +397,29 @@ export const WriteQuestion = ({ onSubmit }) => {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3">
             <Button
+              type="button"
+              variant="outline"
+              onClick={improveWithAI}
+              disabled={!title.trim() || isImproving || isSubmitting}
+            >
+              {isImproving ? "Improving..." : "✨ Improve with AI"}
+            </Button>
+            <Button
+              type="button"
               onClick={handleSubmit}
               disabled={
-                !title.trim() || !content.trim() || !channel || isSubmitting
+                !title.trim() ||
+                !content.trim() ||
+                !channel ||
+                isSubmitting ||
+                isImproving
               }
-              className="min-w-[140px]
-                         bg-gradient-to-r
-                         from-primary
-                         to-accent
-                         text-primary-foreground
-                         hover:from-primary/90
-                         hover:to-accent/90
-                         transition-all
+              className="min-w-[140px] primary-gradient
                          cursor-pointer"
             >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                  Posting...
-                </div>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  Post Question
-                </>
-              )}
+              {isSubmitting ? "Posting..." : "Post Question"}
             </Button>
           </div>
         </CardContent>

@@ -10,15 +10,15 @@ import {
 import AiTab from './aiTab';
 import CommunityTab from './communityTab';
 
-const AnswerCard = () => {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const [newAnswer, setNewAnswer] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showAIAnswer, setShowAIAnswer] = useState(true);
-    const [activeTab, setActiveTab] = useState("ai");
-      const handleSubmitAnswer = () => {}
-        const handleVote = () => {}
+const AnswerCard = ({ question }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [newAnswer, setNewAnswer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAIAnswer, setShowAIAnswer] = useState(true);
+  const [activeTab, setActiveTab] = useState("ai");
+  const handleSubmitAnswer = () => {};
+  const handleVote = () => {};
   return (
     <Card className="card-shadow mb-6 overflow-hidden">
       <CardHeader className="pb-0 pt-5 px-5">
@@ -47,11 +47,11 @@ const AnswerCard = () => {
 
       <CardContent className="pt-4 px-5 pb-5">
         {/* AI Tab */}
-        {activeTab === "ai" && <AiTab />}
-        {activeTab === "community" && <CommunityTab />}
+        {activeTab === "ai" && <AiTab question={question} />}
+        {activeTab === "community" && <CommunityTab question={question} />}
       </CardContent>
     </Card>
   );
-}
+};
 
 export default AnswerCard
