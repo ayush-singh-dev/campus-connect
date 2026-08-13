@@ -5,35 +5,46 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,} from "@/components/ui/dialog";
-import { DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const AddChannelbtn = () => {
-    const {loading,createChannel} = useChannels();
-    const [open, setOpen] = useState(false);
-    const [form, setForm] = useState({
-      name: "",
-      description: "",
-      accessCode: "",
-    });
-    const handleSubmit = async (e) => {
-      e.preventDefault();
+  const { loading, createChannel } = useChannels();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    description: "",
+    accessCode: "",
+  });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-      try {
-        await createChannel(form);
-        setForm({ name: "", description: "", accessCode: "" });
-        setOpen(false);
-      } catch (err) {
-        alert(err.message);
-      }
-    };
+    try {
+      await createChannel(form);
+      toast.success("Channel created successfully! 🎉", {
+        description: `"${form.name}" has been created.`,
+      });
+      setForm({ name: "", description: "", accessCode: "" });
+      setOpen(false);
+    } catch (err) {
+      toast.error("Failed to create channel", {
+        description: err.message || "Something went wrong.",
+      });
+    }
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {/* Trigger Button */}
       <DialogTrigger asChild>
-        <Button size="sm" className="flex gap-2 primary-gradient hover:scale-105 transition-smooth cursor-pointer">
+        <Button
+          size="sm"
+          className="flex gap-2 primary-gradient hover:scale-105 transition-smooth cursor-pointer"
+        >
           <Plus size={16} className="w-4 h-4 mr-1" />
           Add Channel
         </Button>
@@ -86,7 +97,7 @@ const AddChannelbtn = () => {
         </form>
       </DialogContent>
     </Dialog>
-  );    
+  );
 };
 
 export default AddChannelbtn;

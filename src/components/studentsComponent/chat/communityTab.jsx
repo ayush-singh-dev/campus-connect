@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, Send, Badge, GraduationCap, User, CheckCircle, Award } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Send, GraduationCap, User, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useQuestions } from "@/hooks/useQuestions";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -214,26 +215,32 @@ const CommunityTab = () => {
                     <span className="text-sm font-semibold">
                       {answer.users?.full_name || "Unknown"}
                     </span>
+
                     <Badge
                       variant={
-                        answer.role === "teacher" ? "default" : "secondary"
+                        answer.users?.role === "teacher"
+                          ? "default"
+                          : "secondary"
                       }
                       className={`text-[10px] px-1.5 py-0 h-5 ${
-                        answer.role === "teacher"
+                        answer.users?.role === "teacher"
                           ? "primary-gradient border-0"
                           : ""
                       }`}
                     >
-                      {answer.role === "teacher" ? (
+                      {answer.users?.role === "teacher" ? (
                         <>
-                          <GraduationCap className="w-3 h-3 mr-0.5" /> Teacher
+                          <GraduationCap className="w-3 h-3 mr-0.5" />
+                          Teacher
                         </>
                       ) : (
                         <>
-                          <User className="w-3 h-3 mr-0.5" /> Student
+                          <User className="w-3 h-3 mr-0.5" />
+                          Student
                         </>
                       )}
                     </Badge>
+
                     {answer.isVerified && (
                       <Badge
                         variant="outline"
@@ -243,19 +250,12 @@ const CommunityTab = () => {
                         Verified
                       </Badge>
                     )}
-                    {/* {answer.badges.map((badge) => (
-                      <Badge
-                        key={badge}
-                        variant="secondary"
-                        className="text-[10px] px-1.5 py-0 h-5"
-                      >
-                        <Award className="w-3 h-3 mr-0.5" />
-                        {badge}
-                      </Badge>
-                    ))} */}
                   </div>
+
                   <span className="text-xs text-muted-foreground">
-                    {answer.created_at || "Just now"}
+                    {answer.created_at
+                      ? new Date(answer.created_at).toLocaleString()
+                      : "Just now"}
                   </span>
                 </div>
               </div>

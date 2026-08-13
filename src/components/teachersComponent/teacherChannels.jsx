@@ -27,9 +27,11 @@ const TeacherChannels = () => {
   ];
   const { channels, fetchMyChannels, role, joinChannel } = useChannels();
   console.log("Channels in TeacherChannels:", channels);
-   useEffect(() => {
+  useEffect(() => {
+    if (role) {
       fetchMyChannels();
-   }, []);
+    }
+  }, [role]);
   return (
     <Card className="card-shadow">
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -74,13 +76,7 @@ const TeacherChannels = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <Badge
-                  variant={
-                    channel.activity === "high" ? "default" : "secondary"
-                  }
-                >
-                  {channel.activity} activity
-                </Badge>
+                <Badge variant="secondary">Active</Badge>
                 <Button variant="ghost" size="sm">
                   Manage
                 </Button>

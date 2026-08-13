@@ -129,14 +129,18 @@ export const useQuestions = () => {
         answer_id,
         answer,
         created_at,
+        user_id,
         users:users!answers_user_id_fkey (
           full_name,
-          profile_image
+          profile_image,
+          role
         )
       `,
         )
         .eq("question_id", questionId)
-        .order("created_at", { ascending: true });
+        .order("created_at", {
+          ascending: true,
+        });
 
       if (error) throw error;
 
@@ -212,6 +216,93 @@ export const useQuestions = () => {
     }
   };
 
+  const fetchQuestionsFromMyChannels = async () => {
+    try {
+      setLoading(true);
+
+      const token = await getToken({
+        template: "supabase",
+      });
+
+      const supabase = await supabaseClient(token);
+
+      if (!user?.id) {
+        console.log("User is not available");
+        setQuestions([]);
+        return [];
+      }
+
+      console.log("Fetching questions for teacher:", user.id);
+
+      // 1. Get channels created by this teacher
+      const { data: myChannels, error: channelError } = await supabase
+        .from("channels")
+        .select("id")
+        .eq("created_by", user.id);
+
+      if (channelError) {
+        throw channelError;
+      }
+
+      console.log("My channels:", myChannels);
+
+      if (!myChannels || myChannels.length === 0) {
+        setQuestions([]);
+        return [];
+      }
+
+      // 2. Extract channel IDs
+      const channelIds = myChannels.map((channel) => channel.id);
+
+      console.log("My channel IDs:", channelIds);
+
+      // 3. Get questions from those channels
+      const { data: questionData, error: questionError } = await supabase
+        .from("questions")
+        .select(
+          `
+        question_id,
+        user_id,
+        channel_id,
+        question,
+        description,
+        tags,
+        created_at,
+        updated_at,
+        channels (
+          id,
+          name
+        ),
+        users (
+          full_name
+        )
+      `,
+        )
+        .in("channel_id", channelIds)
+        .order("created_at", {
+          ascending: false,
+        });
+
+      if (questionError) {
+        throw questionError;
+      }
+
+      console.log("Questions from my channels:", questionData);
+
+      setQuestions(questionData || []);
+
+      return questionData || [];
+    } catch (error) {
+      console.error("Fetch questions from my channels error:", error);
+
+      setQuestions([]);
+
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     questions,
     loading,
@@ -222,5 +313,6 @@ export const useQuestions = () => {
     voteQuestion,
     setQuestions,
     fetchUserVotes,
+    fetchQuestionsFromMyChannels,
   };
 };
