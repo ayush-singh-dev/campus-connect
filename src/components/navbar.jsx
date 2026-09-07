@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { SignedIn, SignedOut, SignIn, UserButton, useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "@/hooks/ThemeToggle";
 
 const Navbar = () => {
   const [showSignIn, setShowSignIn] = useState(false);
@@ -32,7 +33,8 @@ const Navbar = () => {
               CampusConnect
             </span>
           </Link>
-          <div>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
             <SignedOut>
               <Button variant="outline" onClick={() => setShowSignIn(true)}>
                 Log In
@@ -63,44 +65,29 @@ const Navbar = () => {
                         />,
                       ]
                     : role === "student"
-                    ? [
-                        <UserButton.Action
-                          key="student-dashboard"
-                          label="Student Dashboard"
-                          onClick={() => navigate("/student/dashboard")}
-                          labelIcon={<LayoutDashboard size={16} />}
-                        />,
-                        <UserButton.Action
-                          key="student-profile"
-                          label="Student Profile"
-                          onClick={() => navigate("/student-profile")}
-                          labelIcon={<Heart size={16} />}
-                        />,
-                      ]
-                    : null}
+                      ? [
+                          <UserButton.Action
+                            key="student-dashboard"
+                            label="Student Dashboard"
+                            onClick={() => navigate("/student/dashboard")}
+                            labelIcon={<LayoutDashboard size={16} />}
+                          />,
+                          <UserButton.Action
+                            key="student-profile"
+                            label="Student Profile"
+                            onClick={() => navigate("/student-profile")}
+                            labelIcon={<Heart size={16} />}
+                          />,
+                        ]
+                      : null}
 
                   <UserButton.Action label="manageAccount" />
                 </UserButton.MenuItems>
-                
               </UserButton>
             </SignedIn>
-            {/* <Button variant="default" className="primary-gradient">
-              Sign Up
-            </Button> */}
           </div>
         </div>
       </nav>
-      {/* {showSignIn && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={handleOverlayClick}
-        >
-          <SignIn
-            signUpForceRedirectUrl="/onBoarding"
-            fallbackRedirectUrl="/onBoarding"
-          />
-        </div>
-      )} */}
       {showSignIn && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"

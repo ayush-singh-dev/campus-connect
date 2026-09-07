@@ -18,7 +18,7 @@ import { SignInPage, SignUpPage } from "./pages/authPages";
 function App() {
   return (
     <>
-      <ThemeProvider attribute="class" defaultTheme="dark">
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <Toaster position="top-right" />
         <BrowserRouter>
           <Navbar />
