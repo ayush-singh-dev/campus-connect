@@ -61,13 +61,10 @@ export const useXP = () => {
         .select("xp_point")
         .eq("user_id", user.id)
         .single();
-      console.log("Fetched User:", data);
-      console.log("Current Clerk User:", user.id);
       if (error) throw error;
 
       setXp(data.xp_point || 0);
     } catch (err) {
-      console.log(err);
     } finally {
       setLoading(false);
     }

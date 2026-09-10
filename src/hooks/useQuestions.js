@@ -303,6 +303,43 @@ export const useQuestions = () => {
     }
   };
 
+  const fetchMyQuestions = async () => {
+    if (!user?.id) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from("questions")
+        .select(
+          `
+        *,
+        channels (
+          id,
+          name
+        ),
+        question_votes (
+          id
+        )
+      `,
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const formattedQuestions = (data || []).map((question) => ({
+        ...question,
+        votes_count: question.question_votes?.length || 0,
+      }));
+
+      setQuestions(formattedQuestions);
+
+      return formattedQuestions;
+    } catch (error) {
+      console.error("Error fetching my questions:", error);
+      return [];
+    }
+  };
+
   return {
     questions,
     loading,
@@ -314,5 +351,6 @@ export const useQuestions = () => {
     setQuestions,
     fetchUserVotes,
     fetchQuestionsFromMyChannels,
+    fetchMyQuestions,
   };
 };

@@ -1,76 +1,192 @@
-import React, { useState } from 'react'
+import React from "react";
+
 import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
-import { useUserProfile } from '@/hooks/useUserProfile';
+  Calendar,
+  GraduationCap,
+  Mail,
+  MapPin,
+  Award,
+  User,
+} from "lucide-react";
+
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from '../ui/button';
-import { Calendar, Camera, GraduationCap, Mail, MapPin, Phone } from 'lucide-react';
-import { Separator } from '../ui/separator';
+
+import { Separator } from "@/components/ui/separator";
+
+import { useUserProfile } from "@/hooks/useUserProfile";
+
 const ProfileCard = () => {
-    const { user, isStudent, loading } = useUserProfile();
-    if (loading) return <p>Loading...</p>;
-    if (!isStudent) return <p>Access Denied</p>;
-    console.log("studentProfile:", user)
-    const [profile, setProfile] = useState({
-        firstName: "Alex",
-        lastName: "Johnson",
-        email: "alex.johnson@university.edu",
-        phone: "+1 (555) 123-4567",
-        bio: "Computer Science student passionate about AI and machine learning. Active in coding competitions and open source projects.",
-        university: "MIT",
-        major: "Computer Science",
-        year: "Junior",
-        gpa: "3.8",
-        location: "Cambridge, MA",
-        joinDate: "September 2022",
-      });
+  const { user, isStudent, loading } = useUserProfile();
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">Loading profile...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* -----------------------------------------
+     Access check
+  ----------------------------------------- */
+  if (!isStudent) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">Access Denied</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* -----------------------------------------
+     User not found
+  ----------------------------------------- */
+  if (!user) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">Profile not found.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* -----------------------------------------
+     Initials
+  ----------------------------------------- */
+  const initials =
+    user.full_name
+      ?.split(" ")
+      .map((name) => name.charAt(0))
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "U";
+
+  /* -----------------------------------------
+     Achievements
+  ----------------------------------------- */
+  const achievements = Array.isArray(user.achievements)
+    ? user.achievements.filter(Boolean)
+    : [];
+
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <div className="relative mx-auto">
-          <Avatar className="w-32 h-32 mx-auto">
-            <AvatarImage src={user.profile_image} alt={user.full_name} />
-            <AvatarFallback className="text-2xl">
-              {user.full_name?.charAt(0)}
+    <Card className="overflow-hidden">
+      {/* =========================================
+          PROFILE HEADER
+      ========================================= */}
+      <CardHeader className="text-center pb-6">
+        {/* Profile Image */}
+        <div className="relative mx-auto mb-4">
+          <Avatar className="h-32 w-32 mx-auto border-4 border-background shadow-md">
+            <AvatarImage
+              src={user.profile_image || ""}
+              alt={user.full_name || "Student"}
+              className="object-cover"
+            />
+
+            <AvatarFallback className="text-3xl font-semibold">
+              {initials}
             </AvatarFallback>
           </Avatar>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold">{user.full_name}</h1>
-          <p className="text-muted-foreground">{user.department}</p>
-          <p className="text-sm text-muted-foreground">{user.college}</p>
-        </div>
+
+        {/* Name */}
+        <h1 className="text-2xl font-bold">{user.full_name || "Student"}</h1>
+
+        {/* Department */}
+        <p className="mt-1 text-muted-foreground">
+          {user.department || "Department not available"}
+        </p>
+
+        {/* College */}
+        <p className="text-sm text-muted-foreground">
+          {user.college || "College not available"}
+        </p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-2 text-sm">
-          <Mail className="w-4 h-4 text-muted-foreground" />
-          <span>{user.email}</span>
+
+      <CardContent className="space-y-5">
+        {/* =========================================
+            BASIC INFORMATION
+        ========================================= */}
+
+        <div className="space-y-4">
+          <ProfileField icon={<Mail />} label="Email" value={user.email} />
+
+          <ProfileField
+            icon={<GraduationCap />}
+            label="Degree"
+            value={user.degree}
+          />
+
+          <ProfileField
+            icon={<GraduationCap />}
+            label="Specialization"
+            value={user.specialization}
+          />
+
+          <ProfileField
+            icon={<MapPin />}
+            label="Location"
+            value={user.location}
+          />
+
+          <ProfileField
+            icon={<Calendar />}
+            label="Joined Date"
+            value={formatDate(user.joining_date)}
+          />
         </div>
-        <div className="flex items-center gap-2 text-sm">
-          <GraduationCap className="w-4 h-4 text-muted-foreground" />
-          <span>Degree: {user.degree}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <GraduationCap className="w-4 h-4 text-muted-foreground" />
-          <span>Specialization: {user.specialization}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <MapPin className="w-4 h-4 text-muted-foreground" />
-          <span>{user.location}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <span>Joined {user.joining_date}</span>
-        </div>
-    
-        <Separator />
-        <p className="text-sm">{user.bio}</p>
       </CardContent>
     </Card>
   );
-}
+};
 
-export default ProfileCard
+/* =========================================
+   PROFILE FIELD COMPONENT
+========================================= */
+
+const ProfileField = ({ icon, label, value }) => {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted">
+        {React.cloneElement(icon, {
+          className: "h-4 w-4 text-muted-foreground",
+        })}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+
+        <p className="mt-0.5 break-words text-sm font-medium">
+          {value || "Not available"}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* =========================================
+   DATE FORMATTER
+========================================= */
+
+const formatDate = (date) => {
+  if (!date) return "";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  return parsedDate.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+export default ProfileCard;

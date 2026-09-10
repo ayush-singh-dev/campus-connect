@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -12,50 +12,175 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  BookOpen,
-  Award,
-  Settings,
-  Target,
-} from "lucide-react";
+import { BookOpen, Award, Settings, Target } from "lucide-react";
 import ProfileCard from "@/components/studentsComponent/profileCard";
 import Achievements from "@/components/studentsComponent/achievements";
 import Stats from "@/components/studentsComponent/stats";
+import supabaseClient from "@/utils/supabase";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useQuestions } from "@/hooks/useQuestions";
+import { useAuth } from "@clerk/clerk-react";
+import SettingsTab from "@/components/studentsComponent/SettingTab";
 
 const StudentProfile = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    firstName: "Alex",
-    lastName: "Johnson",
-    email: "alex.johnson@university.edu",
-    phone: "+1 (555) 123-4567",
-    bio: "Computer Science student passionate about AI and machine learning. Active in coding competitions and open source projects.",
-    university: "MIT",
-    major: "Computer Science",
-    year: "Junior",
-    gpa: "3.8",
-    location: "Cambridge, MA",
-    joinDate: "September 2022",
-  });
+  const { questions, fetchQuestions } = useQuestions();
+  const [joinedChannels, setJoinedChannels] = useState([]);
+  const [channelsLoading, setChannelsLoading] = useState(true);
+  const { userId, getToken } = useAuth();
+  // const [profile, setProfile] = useState({
+  //   firstName: "Alex",
+  //   lastName: "Johnson",
+  //   email: "alex.johnson@university.edu",
+  //   phone: "+1 (555) 123-4567",
+  //   bio: "Computer Science student passionate about AI and machine learning. Active in coding competitions and open source projects.",
+  //   university: "MIT",
+  //   major: "Computer Science",
+  //   year: "Junior",
+  //   gpa: "3.8",
+  //   location: "Cambridge, MA",
+  //   joinDate: "September 2022",
+  // });
 
-  
-  
+  const fetchJoinedChannels = async () => {
+    if (!userId) return;
 
-  const courses = [
-    { name: "Machine Learning", code: "CS 6.034", grade: "A", credits: 4 },
-    { name: "Algorithms", code: "CS 6.006", grade: "A-", credits: 4 },
-    { name: "Database Systems", code: "CS 6.830", grade: "B+", credits: 3 },
-    { name: "Web Development", code: "CS 6.170", grade: "A", credits: 3 },
-  ];
+    try {
+      setChannelsLoading(true);
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Save logic would go here
+      const token = await getToken();
+      const supabase = await supabaseClient(token);
+
+      const { data, error } = await supabase
+        .from("channel_members")
+        .select(
+          `
+        channel_id,
+        channels (
+          id,
+          name,
+          description,
+          created_at
+        )
+      `,
+        )
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Error fetching joined channels:", error);
+        return;
+      }
+
+      const channels = (data || [])
+        .map((item) => item.channels)
+        .filter(Boolean);
+
+      setJoinedChannels(channels);
+    } catch (error) {
+      console.error("Error fetching joined channels:", error);
+    } finally {
+      setChannelsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (userId) {
+      fetchJoinedChannels();
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
 
   const handleInputChange = (field, value) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
+
+   const { user, isStudent, loading } = useUserProfile();
+   const [isEditing, setIsEditing] = useState(false);
+   const [saving, setSaving] = useState(false);
+
+   const [profile, setProfile] = useState({
+     full_name: "",
+     email: "",
+     phone: "",
+     bio: "",
+     college: "",
+     department: "",
+     degree: "",
+     specialization: "",
+     location: "",
+     joining_date: "",
+     achievements: [],
+     profile_image: "",
+   });
+   useEffect(() => {
+     if (!user) return;
+
+     setProfile({
+       full_name: user.full_name || "",
+       email: user.email || "",
+       phone: user.phone || "",
+       bio: user.bio || "",
+       college: user.college || "",
+       department: user.department || "",
+       degree: user.degree || "",
+       specialization: user.specialization || "",
+       location: user.location || "",
+       joining_date: user.joining_date || "",
+       achievements: user.achievements || [],
+       profile_image: user.profile_image || "",
+     });
+   }, [user]);
+
+   const handleSave = async () => {
+     try {
+       setSaving(true);
+
+       const token = await getToken();
+       const supabase = await supabaseClient(token);
+
+       const cleanedAchievements = profile.achievements
+         .map((item) => item.trim())
+         .filter(Boolean);
+
+       const { error } = await supabase
+         .from("users")
+         .update({
+           full_name: profile.full_name,
+           phone: profile.phone,
+           bio: profile.bio,
+           college: profile.college,
+           department: profile.department,
+           degree: profile.degree,
+           specialization: profile.specialization,
+           location: profile.location,
+           joining_date: profile.joining_date || null,
+           achievements: cleanedAchievements,
+         })
+         .eq("user_id", user.user_id);
+
+       if (error) {
+         console.error("Error updating profile:", error);
+         return;
+       }
+
+       setProfile((prev) => ({
+         ...prev,
+         achievements: cleanedAchievements,
+       }));
+
+       setIsEditing(false);
+
+       window.location.reload();
+     } catch (error) {
+       console.error("Save profile error:", error);
+     } finally {
+       setSaving(false);
+     }
+   };
+
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 mt-16">
@@ -71,14 +196,13 @@ const StudentProfile = () => {
           {/* Right Column - Detailed Info */}
           <div className="lg:col-span-2 space-y-6">
             {/* Stats Cards */}
-            <Stats/>
+            <Stats />
             {/* Main Content Tabs */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-4 ">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="courses">Courses</TabsTrigger>
                 <TabsTrigger value="questions">My Questions</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
 
@@ -94,7 +218,7 @@ const StudentProfile = () => {
                     <div className="space-y-2">
                       <Label>University</Label>
                       <p className="text-sm font-medium">
-                        {profile.university}
+                        {user?.college || "Not available"}
                       </p>
                     </div>
                     <div className="space-y-2">
@@ -107,7 +231,9 @@ const StudentProfile = () => {
                     </div>
                     <div className="space-y-2">
                       <Label>Current GPA</Label>
-                      <p className="text-sm font-medium">{profile.gpa}</p>
+                      <p className="text-sm font-medium">
+                        {user?.gpa || "Not available"}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -118,34 +244,71 @@ const StudentProfile = () => {
                   <CardHeader>
                     <CardTitle>Current Courses</CardTitle>
                     <CardDescription>
-                      Your enrolled courses for this semester
+                      Your enrolled channels for this semester
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {courses.map((course, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 rounded-lg border"
-                        >
-                          <div>
-                            <p className="font-medium">{course.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {course.code}
+                  <TabsContent value="courses" className="space-y-4">
+                    <Card>
+                      <CardContent>
+                        {channelsLoading ? (
+                          <div className="py-8 text-center text-muted-foreground">
+                            Loading your channels...
+                          </div>
+                        ) : joinedChannels.length === 0 ? (
+                          <div className="py-8 text-center">
+                            <BookOpen className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+
+                            <h4 className="font-medium">
+                              No channels joined yet
+                            </h4>
+
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              Join an academic channel to see it here.
                             </p>
                           </div>
-                          <div className="text-right">
-                            <Badge variant="secondary" className="mb-1">
-                              {course.grade}
-                            </Badge>
-                            <p className="text-xs text-muted-foreground">
-                              {course.credits} credits
-                            </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {joinedChannels.map((channel) => (
+                              <Card
+                                key={channel.id}
+                                className="border hover:shadow-sm transition-shadow"
+                              >
+                                <CardContent className="flex items-center justify-between p-4">
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
+                                      <BookOpen className="h-5 w-5 text-primary" />
+                                    </div>
+
+                                    <div>
+                                      <h4 className="font-semibold">
+                                        {channel.name}
+                                      </h4>
+
+                                      {channel.description && (
+                                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                                          {channel.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      // navigate to your channel page
+                                    }}
+                                  >
+                                    View Channel
+                                  </Button>
+                                </CardContent>
+                              </Card>
+                            ))}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
                 </Card>
               </TabsContent>
 
@@ -158,233 +321,75 @@ const StudentProfile = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {[
-                        {
-                          id: 1,
-                          title:
-                            "How to optimize React components for better performance?",
-                          channel: "Computer Science",
-                          votes: 12,
-                          answers: 5,
-                          views: 234,
-                          time: "2 days ago",
-                          status: "answered",
-                          tags: ["react", "optimization"],
-                        },
-                        {
-                          id: 2,
-                          title:
-                            "Best practices for machine learning model deployment?",
-                          channel: "Machine Learning",
-                          votes: 8,
-                          answers: 2,
-                          views: 156,
-                          time: "1 week ago",
-                          status: "open",
-                          tags: ["ml", "deployment"],
-                        },
-                        {
-                          id: 3,
-                          title:
-                            "Understanding time complexity in sorting algorithms",
-                          channel: "Algorithms",
-                          votes: 15,
-                          answers: 7,
-                          views: 445,
-                          time: "2 weeks ago",
-                          status: "solved",
-                          tags: ["algorithms", "complexity"],
-                        },
-                      ].map((question) => (
-                        <div
-                          key={question.id}
-                          className="p-4 rounded-lg border hover:shadow-md transition-smooth"
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="font-medium text-lg hover:text-primary cursor-pointer">
-                              {question.title}
-                            </h4>
-                            <Badge
-                              variant={
-                                question.status === "solved"
-                                  ? "default"
-                                  : question.status === "answered"
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                              className="ml-2"
-                            >
-                              {question.status}
-                            </Badge>
-                          </div>
+                    {questions.length === 0 ? (
+                      <div className="text-center py-10">
+                        <BookOpen className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
 
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {question.tags.map((tag, tagIndex) => (
-                              <Badge
-                                key={tagIndex}
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
+                        <p className="font-medium">No questions yet</p>
 
-                          <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <div className="flex items-center space-x-4">
-                              <span>👍 {question.votes}</span>
-                              <span>💬 {question.answers}</span>
-                              <span>👀 {question.views}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {question.channel}
-                              </Badge>
+                        <p className="text-sm text-muted-foreground">
+                          Questions you ask will appear here.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {questions.map((question) => (
+                          <div
+                            key={question.question_id}
+                            className="p-4 rounded-lg border hover:shadow-md transition"
+                          >
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <h4 className="font-medium text-lg">
+                                {question.question || "Untitled Question"}
+                              </h4>
                             </div>
-                            <span>{question.time}</span>
+
+                            {/* Tags */}
+
+                            {question.tags?.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                {question.tags.map((tag, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Question information */}
+
+                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                              <span>👍 {question.votes_count || 0}</span>
+
+                              <span>💬 {question.answers_count || 0}</span>
+
+                              {question.channels?.name && (
+                                <Badge variant="outline">
+                                  {question.channels.name}
+                                </Badge>
+                              )}
+
+                              <span>
+                                {question.created_at
+                                  ? new Date(
+                                      question.created_at,
+                                    ).toLocaleDateString()
+                                  : ""}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
-
-              <TabsContent value="activity" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Activity</CardTitle>
-                    <CardDescription>
-                      Your latest interactions and contributions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
-                          <Award className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            Earned "Best Answer" badge
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            2 hours ago
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                          <BookOpen className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            Asked a question in Machine Learning
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Yesterday
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center">
-                          <Target className="w-4 h-4 text-purple-600" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            Helped 3 students with Algorithm problems
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            2 days ago
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="settings" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>Profile Settings</CardTitle>
-                        <CardDescription>
-                          Update your personal information
-                        </CardDescription>
-                      </div>
-                      <Button
-                        variant={isEditing ? "default" : "outline"}
-                        onClick={() =>
-                          isEditing ? handleSave() : setIsEditing(true)
-                        }
-                      >
-                        <Settings className="w-4 h-4 mr-2" />
-                        {isEditing ? "Save Changes" : "Edit Profile"}
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input
-                          id="firstName"
-                          value={profile.firstName}
-                          onChange={(e) =>
-                            handleInputChange("firstName", e.target.value)
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input
-                          id="lastName"
-                          value={profile.lastName}
-                          onChange={(e) =>
-                            handleInputChange("lastName", e.target.value)
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          value={profile.email}
-                          onChange={(e) =>
-                            handleInputChange("email", e.target.value)
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input
-                          id="phone"
-                          value={profile.phone}
-                          onChange={(e) =>
-                            handleInputChange("phone", e.target.value)
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <Textarea
-                        id="bio"
-                        value={profile.bio}
-                        onChange={(e) =>
-                          handleInputChange("bio", e.target.value)
-                        }
-                        disabled={!isEditing}
-                        rows={3}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+              <TabsContent value="settings" className="space-y-6">
+               <SettingsTab/>
               </TabsContent>
             </Tabs>
           </div>
