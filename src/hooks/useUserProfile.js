@@ -2,7 +2,6 @@ import { useUserContext } from "./UserContext";
 
 export const useUserProfile = () => {
   const { dbUser, loading } = useUserContext();
-  console.log("useUserProfile: ", dbUser);
   return {
     user: dbUser,
     role: dbUser?.role,

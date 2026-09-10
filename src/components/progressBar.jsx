@@ -9,8 +9,6 @@ import { getLevelData } from "@/utils/level";
 
 const ProgressBar = () => {
   const { xp } = useXP();
-
-  console.log("Current XPs:", xp);
   const { level, progress, remaining } = getLevelData(xp);
 
   return (

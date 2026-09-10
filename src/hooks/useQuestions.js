@@ -1,5 +1,5 @@
 // hooks/useQuestions.js
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import supabaseClient from "@/utils/supabase";
 import { useAuth, useUser } from "@clerk/clerk-react";
 
@@ -57,12 +57,10 @@ export const useQuestions = () => {
         .in("channel_id", channelIds)
         .order("created_at", { ascending: false })
         .limit(5);
-        const formatted = (data || []).map((q) => ({
-          ...q,
-          votes_count:
-            q.question_votes?.reduce((sum, v) => sum + v.vote, 0) || 0,
-        }));
-
+      const formatted = (data || []).map((q) => ({
+        ...q,
+        votes_count: q.question_votes?.reduce((sum, v) => sum + v.vote, 0) || 0,
+      }));
 
       if (error) {
         throw error;
@@ -74,6 +72,63 @@ export const useQuestions = () => {
       setLoading(false);
     }
   };
+
+  // =========================================================
+  // QUESTIONS REALTIME
+  // =========================================================
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    let supabase;
+    let realtimeChannel;
+
+    const setupRealtime = async () => {
+      try {
+        const token = await getToken({
+          template: "supabase",
+        });
+
+        supabase = await supabaseClient(token);
+
+        realtimeChannel = supabase
+          .channel(`questions-realtime-${user.id}`)
+
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "questions",
+            },
+            (payload) => {
+              console.log("🔥 QUESTIONS REALTIME EVENT:", payload);
+
+              // Refresh the questions list
+              fetchQuestions();
+            },
+          )
+
+          .subscribe((status) => {
+            // console.log("📡 QUESTIONS REALTIME STATUS:", status);
+          });
+      } catch (error) {
+        console.error("❌ Questions realtime setup error:", error);
+      }
+    };
+
+    setupRealtime();
+
+    return () => {
+      if (supabase && realtimeChannel) {
+        console.log("🧹 Removing questions realtime channel");
+
+        supabase.removeChannel(realtimeChannel);
+      }
+    };
+  }, [user?.id]);
+
+
   const fetchQuestionById = async (questionId) => {
     try {
       setLoading(true);
@@ -337,4 +392,4 @@ export const useQuestions = () => {
     fetchQuestionsFromMyChannels,
     fetchMyQuestions,
   };
-};
+};;
