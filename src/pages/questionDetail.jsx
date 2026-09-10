@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -11,8 +11,6 @@ import QuestionCard from "@/components/studentsComponent/chat/questionCard";
 import AnswerCard from "@/components/studentsComponent/chat/answerCard";
 import { useQuestions } from "@/hooks/useQuestions";
 
-
-
 const QuestionDetail = () => {
   const navigate = useNavigate();
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
@@ -24,8 +22,6 @@ const QuestionDetail = () => {
     const loadQuestion = async () => {
       try {
         const q = await fetchQuestionById(questionId);
-
-        console.log("Question Detail:", q);
 
         setQuestion(q);
       } catch (error) {

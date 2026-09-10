@@ -4,7 +4,6 @@ import {
   User,
   GraduationCap,
   MapPin,
-  Phone,
   Mail,
   Calendar,
   Award,
@@ -17,16 +16,12 @@ import {
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { useUserProfile } from "@/hooks/useUserProfile";
 
-// IMPORTANT:
-// Replace this import with the SAME path you already use
-// for your working Supabase client.
 import supabaseClient from "@/utils/supabase";
 
 const SettingsTab = () => {

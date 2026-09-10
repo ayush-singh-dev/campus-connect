@@ -57,7 +57,6 @@ export const useQuestions = () => {
         .in("channel_id", channelIds)
         .order("created_at", { ascending: false })
         .limit(5);
-        console.log("DATA:////", data);
         const formatted = (data || []).map((q) => ({
           ...q,
           votes_count:
@@ -66,12 +65,11 @@ export const useQuestions = () => {
 
 
       if (error) {
-        console.error("Supabase error:", error.message);
-        return;
+        throw error;
       }
       setQuestions(formatted);
     } catch (err) {
-      console.error("Fetch questions error:", err.message);
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -104,15 +102,11 @@ export const useQuestions = () => {
         .eq("question_id", questionId)
         .single();
 
-        console.log("Question Data:", data);
-        console.log("Question Error:", error);
-
       if (error) throw error;
 
       return data;
     } catch (err) {
-      console.error("Fetch single question error:", err);
-      return null;
+      throw err;
     } finally {
       setLoading(false);
     }
@@ -146,7 +140,6 @@ export const useQuestions = () => {
 
       return data || [];
     } catch (err) {
-      console.error("Fetch answers error:", err.message);
       return [];
     }
   };
@@ -165,7 +158,6 @@ export const useQuestions = () => {
 
       return { success: true };
     } catch (err) {
-      console.error("Create answer error:", err.message);
       return { success: false };
     }
   };
@@ -188,7 +180,7 @@ export const useQuestions = () => {
         p_vote: voteType,
       });
     } catch (err) {
-      console.error(err);
+      throw err;
     }
   };
   const fetchUserVotes = async () => {
@@ -232,8 +224,6 @@ export const useQuestions = () => {
         return [];
       }
 
-      console.log("Fetching questions for teacher:", user.id);
-
       // 1. Get channels created by this teacher
       const { data: myChannels, error: channelError } = await supabase
         .from("channels")
@@ -244,8 +234,6 @@ export const useQuestions = () => {
         throw channelError;
       }
 
-      console.log("My channels:", myChannels);
-
       if (!myChannels || myChannels.length === 0) {
         setQuestions([]);
         return [];
@@ -253,8 +241,6 @@ export const useQuestions = () => {
 
       // 2. Extract channel IDs
       const channelIds = myChannels.map((channel) => channel.id);
-
-      console.log("My channel IDs:", channelIds);
 
       // 3. Get questions from those channels
       const { data: questionData, error: questionError } = await supabase
@@ -286,8 +272,6 @@ export const useQuestions = () => {
       if (questionError) {
         throw questionError;
       }
-
-      console.log("Questions from my channels:", questionData);
 
       setQuestions(questionData || []);
 

@@ -15,7 +15,6 @@ const AllQuestions = () => {
   const [userVotes, setUserVotes] = useState({});
 
     const { questions, fetchQuestions, voteQuestion, fetchUserVotes } = useQuestions();
-    console.log("Fetched allll questions:", questions);
     const handleVote = async (questionId, voteType) => {
       if (voting) return;
       setVoting(true);

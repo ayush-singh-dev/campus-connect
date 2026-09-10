@@ -136,8 +136,6 @@ IMPORTANT RULES:
 
     const result = await response.json();
 
-    console.log("Gemini raw response:", JSON.stringify(result));
-
     const answerText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!answerText) {
@@ -166,8 +164,6 @@ IMPORTANT RULES:
       flowchart: answer.flowchart || "",
       resources: Array.isArray(answer.resources) ? answer.resources : [],
     };
-
-    console.log("Final AI answer:", answer);
 
     // Send structured response to React
     return new Response(

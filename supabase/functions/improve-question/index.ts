@@ -18,7 +18,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log("Improve question function started");
 
     if (!GEMINI_API_KEY) {
       console.error("GEMINI_API_KEY is missing");
@@ -91,8 +90,6 @@ Rules:
 - Keep suggestions short.
 `;
 
-    console.log("Calling Gemini...");
-
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
       {
@@ -120,9 +117,6 @@ Rules:
     );
 
     const geminiText = await response.text();
-
-    console.log("Gemini status:", response.status);
-    console.log("Gemini response:", geminiText);
 
     if (!response.ok) {
       return new Response(

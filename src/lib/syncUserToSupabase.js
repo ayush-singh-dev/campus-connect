@@ -4,7 +4,6 @@ export const syncUserToSupabase = async (clerkUser, getToken) => {
   if (!clerkUser) return;
 
   const token = await getToken({ template: "supabase" });
-  console.log(":::::::::::::::::::::::",JSON.parse(atob(token.split(".")[1])));
   const supabase = await supabaseClient(token);
   console.log("syncUserToSupabase: ", supabase);
 

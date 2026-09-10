@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
 import { PlusCircle, Tag, BookOpen, Send, Sparkles } from "lucide-react";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 

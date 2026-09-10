@@ -3,13 +3,11 @@ import supabaseClient from "@/utils/supabase";
 import { useChannelContext } from "@/hooks/channelContext";
 import { useUser, useAuth } from "@clerk/clerk-react";
 
-
 export const useChannels = () => {
   const { channels, setChannels, loading, setLoading } = useChannelContext();
   const { user } = useUser();
   const { getToken } = useAuth();
   const [searchResults, setSearchResults] = useState([]);
-
 
   const role = user?.unsafeMetadata?.role;
 
@@ -38,11 +36,8 @@ export const useChannels = () => {
         .single();
 
       if (error) {
-        console.error("Error creating channel:", error);
         throw error;
       }
-
-      console.log("Created channel:", data);
 
       // Add teacher as a member
       const { error: memberError } = await supabase
@@ -53,7 +48,6 @@ export const useChannels = () => {
         });
 
       if (memberError) {
-        console.error("Error adding teacher to channel:", memberError);
         throw memberError;
       }
 
@@ -65,7 +59,6 @@ export const useChannels = () => {
         data,
       };
     } catch (error) {
-      console.error("Create channel error:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -87,7 +80,7 @@ export const useChannels = () => {
 
       setSearchResults(data || []);
     } catch (err) {
-      console.error("Search channels error:", err.message);
+      throw err;
     }
   };
 
@@ -104,13 +97,8 @@ export const useChannels = () => {
       const userId = user?.id;
 
       if (!userId) {
-        console.log("No Clerk user found");
         return;
       }
-
-      console.log("Fetching channels for:", userId);
-      console.log("Role:", role);
-
       let data;
       let error;
 
@@ -168,12 +156,9 @@ export const useChannels = () => {
       if (error) {
         throw error;
       }
-
-      console.log("My channels:", data);
-
       setChannels(data || []);
     } catch (error) {
-      console.error("Fetch my channels error:", error.message);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -198,7 +183,7 @@ export const useChannels = () => {
 
       setSearchResults(data || []);
     } catch (err) {
-      console.error("Search error:", err.message);
+      throw err;
     }
   };
 
@@ -213,18 +198,13 @@ export const useChannels = () => {
       });
 
       if (error) {
-        console.error("Join error:", error.message);
         throw error;
       }
       fetchMyChannels(); // Refresh my channels after joining
     } catch (error) {
-      console.error("Join error:", error.message);
       throw error;
     }
-    
   };
-
-  
 
   return {
     channels,

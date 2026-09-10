@@ -4,7 +4,6 @@ const ChannelContext = createContext(null);
 
 export const ChannelProvider = ({ children }) => {
   const [channels, setChannels] = useState([]);
-  console.log("ChannelProvider rendered with channels:", channels);
   const [loading, setLoading] = useState(false);
   return (
     <ChannelContext.Provider

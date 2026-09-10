@@ -5,14 +5,10 @@ import {
   GraduationCap,
   Mail,
   MapPin,
-  Award,
-  User,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
-import { Separator } from "@/components/ui/separator";
 
 import { useUserProfile } from "@/hooks/useUserProfile";
 
@@ -65,13 +61,6 @@ const ProfileCard = () => {
       .join("")
       .slice(0, 2)
       .toUpperCase() || "U";
-
-  /* -----------------------------------------
-     Achievements
-  ----------------------------------------- */
-  const achievements = Array.isArray(user.achievements)
-    ? user.achievements.filter(Boolean)
-    : [];
 
   return (
     <Card className="overflow-hidden">

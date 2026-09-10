@@ -27,20 +27,6 @@ const StudentProfile = () => {
   const [joinedChannels, setJoinedChannels] = useState([]);
   const [channelsLoading, setChannelsLoading] = useState(true);
   const { userId, getToken } = useAuth();
-  // const [profile, setProfile] = useState({
-  //   firstName: "Alex",
-  //   lastName: "Johnson",
-  //   email: "alex.johnson@university.edu",
-  //   phone: "+1 (555) 123-4567",
-  //   bio: "Computer Science student passionate about AI and machine learning. Active in coding competitions and open source projects.",
-  //   university: "MIT",
-  //   major: "Computer Science",
-  //   year: "Junior",
-  //   gpa: "3.8",
-  //   location: "Cambridge, MA",
-  //   joinDate: "September 2022",
-  // });
-
   const fetchJoinedChannels = async () => {
     if (!userId) return;
 
@@ -132,54 +118,6 @@ const StudentProfile = () => {
        profile_image: user.profile_image || "",
      });
    }, [user]);
-
-   const handleSave = async () => {
-     try {
-       setSaving(true);
-
-       const token = await getToken();
-       const supabase = await supabaseClient(token);
-
-       const cleanedAchievements = profile.achievements
-         .map((item) => item.trim())
-         .filter(Boolean);
-
-       const { error } = await supabase
-         .from("users")
-         .update({
-           full_name: profile.full_name,
-           phone: profile.phone,
-           bio: profile.bio,
-           college: profile.college,
-           department: profile.department,
-           degree: profile.degree,
-           specialization: profile.specialization,
-           location: profile.location,
-           joining_date: profile.joining_date || null,
-           achievements: cleanedAchievements,
-         })
-         .eq("user_id", user.user_id);
-
-       if (error) {
-         console.error("Error updating profile:", error);
-         return;
-       }
-
-       setProfile((prev) => ({
-         ...prev,
-         achievements: cleanedAchievements,
-       }));
-
-       setIsEditing(false);
-
-       window.location.reload();
-     } catch (error) {
-       console.error("Save profile error:", error);
-     } finally {
-       setSaving(false);
-     }
-   };
-
 
   return (
     <div className="min-h-screen bg-background">
