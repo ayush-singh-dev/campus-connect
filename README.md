@@ -124,6 +124,24 @@ This allows connected users to see changes without manually refreshing the page.
 
 ---
 
+# 🛠️ Tech Stack
+
+| Category | Technology |
+|---|---|
+| Frontend | React.js, Vite |
+| Styling | Tailwind CSS, shadcn/ui |
+| Routing | React Router |
+| Authentication | Clerk |
+| Database | Supabase PostgreSQL |
+| Backend | Supabase Edge Functions |
+| Realtime | Supabase Realtime |
+| AI | Google Gemini API |
+| Icons | Lucide React |
+| Deployment | Vercel |
+| Version Control | Git & GitHub |
+
+---
+
 # 🏗️ System Architecture
 
 ```text
@@ -153,22 +171,5 @@ This allows connected users to see changes without manually refreshing the page.
                     ▼                   ▼
               Live Updates        AI Processing
 
-```
 
 
-```markdown
-# 🛠️ Tech Stack
-
-| Category | Technology |
-|---|---|
-| Frontend | React.js, Vite |
-| Styling | Tailwind CSS, shadcn/ui |
-| Routing | React Router |
-| Authentication | Clerk |
-| Database | Supabase PostgreSQL |
-| Backend | Supabase Edge Functions |
-| Realtime | Supabase Realtime |
-| AI | Google Gemini API |
-| Icons | Lucide React |
-| Deployment | Vercel |
-| Version Control | Git & GitHub |
